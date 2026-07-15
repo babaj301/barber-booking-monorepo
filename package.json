@@ -1,0 +1,12 @@
+{
+  "name": "barber-booking-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=apps/backend-api",
+    "build:all": "npm run build --workspaces"
+  }
+}
