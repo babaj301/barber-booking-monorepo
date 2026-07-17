@@ -10,12 +10,16 @@
   },
   "dependencies": {
     "@barber-booking/types": "*",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^4.19.0",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.11.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.11.0",
     "@types/pg": "^8.11.0",
     "ts-node-dev": "^2.0.0",
