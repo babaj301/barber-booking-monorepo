@@ -4,18 +4,21 @@ import path from 'path';
 
 async function runMigrations() {
   try {
-    const migrationPath = path.join(
-      __dirname,
-      '../migrations/001_create_users.sql',
-    );
+    const targetPath = path.join(__dirname, '../migrations');
+    const files = fs.readdirSync(targetPath);
+    const sortedFiles = files.sort();
 
-    const sql = fs.readFileSync(migrationPath, 'utf8');
+    for (const file of sortedFiles) {
+      const fullpath = path.join(targetPath, file);
+      const content = fs.readFileSync(fullpath, 'utf8');
 
-    console.log('Running migration: 001_create_users.sql');
+      console.log(content);
 
-    await query(sql);
+      await query(content);
+    }
+    // console.log('Running migration: 001_create_users.sql');
 
-    console.log('Query successful: Users table created');
+    console.log('All migrations executed successfully');
   } catch (error) {
     console.error('Migration failed:', error);
     process.exit(1);
