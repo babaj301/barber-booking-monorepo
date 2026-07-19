@@ -1,0 +1,33 @@
+import { describe, it, expect, beforeAll } from 'vitest';
+import request from 'supertest';
+import app from '../app';
+import pool from '../db';
+
+describe('Auth Routes', () => {
+  // Clear out our test user before running tests so duplicate keys don't trip us up
+  beforeAll(async () => {
+    await pool.query("DELETE FROM Users WHERE email = 'test@example.com'");
+  });
+
+  describe('POST /api/auth/register', () => {
+    it('should successfully register a new user and return user metadata without the password hash', async () => {
+      const testPayload = {
+        name: 'Test Engineer',
+        email: 'test@example.com',
+        password: 'Password123!',
+      };
+
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send(testPayload);
+
+      // Core assertions
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe('User created successfully');
+
+      // The challenge assertions:
+      expect(response.body.user.email).toBe(testPayload.email);
+      expect(response.body.user.password_hash).toBeUndefined();
+    });
+  });
+});

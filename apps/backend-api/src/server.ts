@@ -1,17 +1,13 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import { AppointmentStatus } from '@barber-booking/types';
-import authRouter from './routes/auth';
 import pool from './db';
+import app from './app';
 
-const app = express();
 const PORT = process.env.PORT || 5001;
 
 // This middleware tells Express to parse incoming JSON request bodies.
 // Without this, `req.body` will be undefined!
-app.use(express.json());
-
-app.use("/api/auth", authRouter);
 
 // A simple "health check" endpoint to verify our server is alive.
 app.get('/health', async (req: Request, res: Response) => {
