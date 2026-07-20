@@ -4,7 +4,7 @@ import path from 'path';
 
 async function runMigrations() {
   try {
-    const targetPath = path.join(__dirname, '../migrations');
+    const targetPath = path.join(__dirname, '../../migrations');
     const files = fs.readdirSync(targetPath);
     const sortedFiles = files.sort();
 

@@ -5,5 +5,6 @@ CREATE TABLE  Services (
     id SERIAL PRIMARY KEY,
     name TEXT,
     price DECIMAL,
-    duration_minutes INT
+    duration_minutes INT,
+    is_active BOOLEAN DEFAULT true NOT NULL
 );

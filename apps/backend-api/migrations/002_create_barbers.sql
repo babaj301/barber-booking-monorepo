@@ -2,7 +2,7 @@
 DROP TABLE IF EXISTS Barbers CASCADE;
 CREATE TABLE Barbers (
     id SERIAL PRIMARY KEY,
-    userId INT REFERENCES Users(id),
+    user_id INT REFERENCES Users(id),
     bio TEXT ,
-    is_active BOOLEAN
+    is_active BOOLEAN DEFAULT true NOT NULL
 );

@@ -1,3 +1,5 @@
+
+DROP TYPE IF EXISTS status CASCADE;
 CREATE TYPE status AS ENUM ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled');
 
 -- Create a new table 'Appointments' with a primary key and columns
