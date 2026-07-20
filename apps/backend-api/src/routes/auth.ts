@@ -1,14 +1,24 @@
 import 'dotenv/config';
 import express from 'express';
 import { Request, Response } from 'express';
-import { registerToken } from '../middleware/authenticateToken';
+import { registerToken } from '../services/authService';
+import jwt from 'jsonwebtoken';
+import { query } from '../db';
+import bcrypt from 'bcrypt';
+
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
   const { name, email, password, user_role } = req.body;
   const saltRounds = 10;
   try {
-    const newUser = await registerToken(name, email, password, user_role, saltRounds);
+    const newUser = await registerToken(
+      name,
+      email,
+      password,
+      user_role,
+      saltRounds,
+    );
 
     console.log('User created successfully', newUser);
     res.status(201).json({
@@ -38,7 +48,11 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const payload = { userId: userToSend.id, email: userToSend.email };
+    const payload = {
+      userId: userToSend.id,
+      email: userToSend.email,
+      user_role: userToSend.user_role,
+    };
 
     const token = jwt.sign(
       payload,

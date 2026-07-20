@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { query } from '../db';
 
 export async function registerToken(
@@ -13,7 +12,7 @@ export async function registerToken(
 
   const result = await query(
     `INSERT INTO Users(name, email, password_hash, user_role) VALUES($1, $2, $3, $4) RETURNING *`,
-    [name, email, hashedPassword, user_role],
+    [name, email, hashedPassword, user_role || 'client'],
   );
 
   const newUser = result.rows[0];
