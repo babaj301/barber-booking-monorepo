@@ -1,24 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { query } from '../db';
+import { registerToken } from '../middleware/authenticateToken';
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, user_role } = req.body;
   const saltRounds = 10;
   try {
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const result = await query(
-      `INSERT INTO Users(name, email, password_hash) VALUES($1, $2, $3) RETURNING *`,
-      [name, email, hashedPassword],
-    );
-
-    const newUser = result.rows[0];
-    delete newUser.password_hash;
+    const newUser = await registerToken(name, email, password, user_role, saltRounds);
 
     console.log('User created successfully', newUser);
     res.status(201).json({
@@ -50,9 +40,13 @@ router.post('/login', async (req, res) => {
 
     const payload = { userId: userToSend.id, email: userToSend.email };
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'fallback_development_key', {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      payload,
+      process.env.JWT_SECRET || 'fallback_development_key',
+      {
+        expiresIn: '1h',
+      },
+    );
 
     return res.status(200).json({
       message: 'Login successful',
