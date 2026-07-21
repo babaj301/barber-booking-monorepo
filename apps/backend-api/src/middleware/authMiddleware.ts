@@ -38,6 +38,7 @@ export const authenticateToken = (
     ) as AuthenticatedRequest['user'];
     req.user = decoded;
 
+
     next();
   } catch (error) {
     return res.status(403).json({
