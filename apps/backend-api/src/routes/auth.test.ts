@@ -26,10 +26,27 @@ describe('Auth Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.message).toBe('User created successfully');
 
-      // The challenge assertions:
       expect(response.body.user.email).toBe(testPayload.email);
       expect(response.body.user.password_hash).toBeUndefined();
       expect(response.body.user.user_role).toBe('admin');
+    });
+  });
+  describe('POST /api/auth/login', () => {
+    it('should successfully register a new user and return user metadata', async () => {
+      const testPayload = {
+        email: 'test@example.com',
+        password: 'Password123!',
+      };
+
+      const response = await request(app)
+        .post('api/auth/login')
+        .send(testPayload);
+
+      // assertions
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Access granted to protected route');
+
+      expect(response.body.user.email).toBe(testPayload.email);
     });
   });
 });
