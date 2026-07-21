@@ -8,6 +8,7 @@ import bcrypt from 'bcrypt';
 import {
   authenticateToken,
   AuthenticatedRequest,
+  requireRole,
 } from '../middleware/authMiddleware';
 const router = express.Router();
 
@@ -79,6 +80,7 @@ router.post('/login', async (req, res) => {
 router.get(
   '/me',
   authenticateToken,
+  requireRole(['barber, admin']),
   (req: AuthenticatedRequest, res: Response) => {
     res.status(200).json({
       message: 'Access granted to protected route',

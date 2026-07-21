@@ -38,7 +38,6 @@ export const authenticateToken = (
     ) as AuthenticatedRequest['user'];
     req.user = decoded;
 
-
     next();
   } catch (error) {
     return res.status(403).json({
@@ -46,3 +45,22 @@ export const authenticateToken = (
     });
   }
 };
+
+export function requireRole(allowedRoles: string[]) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    // 1. Guard clause: Ensure user was set by authenticateToken
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    // 2. Check if the user's role is inside the allowed array
+    if (!allowedRoles.includes(req.user.user_role)) {
+      return res
+        .status(403)
+        .json({ message: 'Forbidden: Insufficient permissions' });
+    }
+
+    // 3. Role is allowed, proceed to the next middleware/route handler
+    return next();
+  };
+}
