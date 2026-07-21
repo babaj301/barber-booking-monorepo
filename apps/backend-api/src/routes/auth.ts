@@ -5,10 +5,13 @@ import { registerToken } from '../services/authService';
 import jwt from 'jsonwebtoken';
 import { query } from '../db';
 import bcrypt from 'bcrypt';
-
+import {
+  authenticateToken,
+  AuthenticatedRequest,
+} from '../middleware/authMiddleware';
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', authenticateToken, async (req, res) => {
   const { name, email, password, user_role } = req.body;
   const saltRounds = 10;
   try {
@@ -20,7 +23,6 @@ router.post('/register', async (req, res) => {
       saltRounds,
     );
 
-    console.log('User created successfully', newUser);
     res.status(201).json({
       message: 'User created successfully',
       user: newUser,
@@ -72,5 +74,17 @@ router.post('/login', async (req, res) => {
     });
   }
 });
+
+// Protected route: returns current authenticated user metadata
+router.get(
+  '/me',
+  authenticateToken,
+  (req: AuthenticatedRequest, res: Response) => {
+    res.status(200).json({
+      message: 'Access granted to protected route',
+      user: req.user,
+    });
+  },
+);
 
 export default router;

@@ -15,6 +15,7 @@ describe('Auth Routes', () => {
         name: 'Test Engineer',
         email: 'test@example.com',
         password: 'Password123!',
+        user_role: 'admin',
       };
 
       const response = await request(app)
@@ -28,6 +29,7 @@ describe('Auth Routes', () => {
       // The challenge assertions:
       expect(response.body.user.email).toBe(testPayload.email);
       expect(response.body.user.password_hash).toBeUndefined();
+      expect(response.body.user.user_role).toBe('admin');
     });
   });
 });
