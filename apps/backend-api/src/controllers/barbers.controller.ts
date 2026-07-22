@@ -5,6 +5,7 @@ import {
   getBarberById,
   editBarber,
   deleteBarber,
+  reActivateBarber,
 } from '../services/barbers.service';
 
 export async function getBarbersController(
@@ -75,6 +76,7 @@ export async function editBarberController(
     const { bio } = req.body;
     const barber = await editBarber(id, bio);
     res.status(200).json({
+      message: 'Barber edited',
       barber,
     });
   } catch (error) {
@@ -93,6 +95,26 @@ export async function deleteBarberController(
     const id = parseInt(req.params.id);
     const barber = await deleteBarber(id);
     res.status(200).json({
+      message: 'Barber deactivated',
+      barber,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find barber',
+    });
+  }
+}
+
+export async function reactivateBarberController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const barber = await reActivateBarber(id);
+    res.status(200).json({
+      message: 'Barber reactivated',
       barber,
     });
   } catch (error) {

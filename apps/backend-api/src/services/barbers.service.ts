@@ -44,8 +44,17 @@ export async function createBarber(
 }
 
 export async function deleteBarber(id: number) {
-  const result = await query(`DELETE FROM barbers WHERE id = $1 RETURNING *`, [
-    id,
-  ]);
+  const result = await query(
+    `UPDATE barbers SET is_active = false WHERE id = $1 RETURNING *`,
+    [id],
+  );
+  return result.rows[0];
+}
+
+export async function reActivateBarber(id: number) {
+  const result = await query(
+    `UPDATE barbers SET is_active = true WHERE id = $1 RETURNING *`,
+    [id],
+  );
   return result.rows[0];
 }
