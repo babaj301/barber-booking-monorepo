@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { createBarber, getBarbers } from '../services/barbers.service';
 
+
 export async function getBarbersController(
   req: Request,
   res: Response,

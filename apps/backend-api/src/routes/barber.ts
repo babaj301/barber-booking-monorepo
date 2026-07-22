@@ -5,10 +5,16 @@ import {
   getBarbersController,
   createBarbersController,
 } from '../controllers/barbers.controller';
+import { authenticateToken, requireRole } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
 router.get('/', getBarbersController);
-router.post('/', createBarbersController);
+router.post(
+  '/',
+  authenticateToken,
+  requireRole(['admin']),
+  createBarbersController,
+);
 
 export default router;
