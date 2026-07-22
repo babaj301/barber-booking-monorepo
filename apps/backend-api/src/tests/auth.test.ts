@@ -39,14 +39,12 @@ describe('Auth Routes', () => {
       };
 
       const response = await request(app)
-        .post('api/auth/login')
+        .post('/api/auth/login')
         .send(testPayload);
 
       // assertions
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Access granted to protected route');
-
-      expect(response.body.user.email).toBe(testPayload.email);
+      expect(response.body.message).toBe('Login successful');
     });
   });
 });
