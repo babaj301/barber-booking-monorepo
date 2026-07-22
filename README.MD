@@ -7,5 +7,3 @@
 
 2. JWT Authentication & Security Infrastructure
    The Exposure Risk: When implementing user registration using RETURNING \*, the database returned the complete record including the newly encrypted password_hash. Sending this directly back to the client over the network would expose a critical security surface area. I eliminated this risk by explicitly destructuring the row object and deleting the password_hash property from the memory block prior to dispatching the HTTP 201 response.
-
-The Enumeration Vulnerability: During the login route setup, I mitigated the risk by standardizing all conditional lookup failure points to throw an identical generic 401 unauthenticated response message.
