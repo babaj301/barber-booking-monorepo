@@ -2,9 +2,7 @@ import 'dotenv/config';
 import { NextFunction, Request, Response } from 'express';
 import { registerToken, loginUser } from '../services/auth.service';
 
-import jwt from 'jsonwebtoken';
-import { query } from '../db';
-import bcrypt from 'bcrypt';
+
 
 export const registerUserController = async (
   req: Request,
