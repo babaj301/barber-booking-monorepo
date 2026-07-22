@@ -3,6 +3,8 @@ import {
   createBarber,
   getBarbers,
   getBarberById,
+  editBarber,
+  deleteBarber,
 } from '../services/barbers.service';
 
 export async function getBarbersController(
@@ -60,5 +62,42 @@ export async function createBarbersController(
   } catch (error) {
     console.error('Error creating barber', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function editBarberController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const { bio } = req.body;
+    const barber = await editBarber(id, bio);
+    res.status(200).json({
+      barber,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find barber',
+    });
+  }
+}
+
+export async function deleteBarberController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const barber = await deleteBarber(id);
+    res.status(200).json({
+      barber,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find barber',
+    });
   }
 }

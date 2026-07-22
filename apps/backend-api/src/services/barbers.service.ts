@@ -19,6 +19,14 @@ export async function getBarberById(id: number) {
   return barber.rows[0];
 }
 
+export async function editBarber(id: number, bio: string) {
+  const result = await query(
+    `UPDATE barbers SET bio = $2 WHERE id = $1 RETURNING *`,
+    [id, bio],
+  );
+  return result.rows[0];
+}
+
 export async function createBarber(
   id: number,
   user_id: number,
@@ -33,4 +41,11 @@ export async function createBarber(
   const newBarber = result.rows[0];
 
   return newBarber;
+}
+
+export async function deleteBarber(id: number) {
+  const result = await query(`DELETE FROM barbers WHERE id = $1 RETURNING *`, [
+    id,
+  ]);
+  return result.rows[0];
 }
