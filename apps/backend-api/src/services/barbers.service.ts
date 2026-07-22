@@ -2,7 +2,6 @@ import { query } from '../db';
 
 export async function getBarbers() {
   const barbers = await query(`SELECT * FROM barbers`);
-  console.log(barbers);
   if (barbers.rowCount === 0) {
     throw new Error('No barbers found');
   }

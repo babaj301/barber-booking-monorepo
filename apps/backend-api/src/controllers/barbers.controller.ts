@@ -20,7 +20,6 @@ export async function getBarbersController(
         barbers,
       });
     }
-    console.log(barbers);
   } catch (error) {
     res.status(404).json({
       message: 'Couldnt find barbers',
@@ -52,7 +51,7 @@ export async function createBarbersController(
   next: NextFunction,
 ) {
   try {
-    const { id, user_id, bio, name, is_active } = req.body;
+    const { id, user_id, bio, is_active } = req.body;
     if (!id || !user_id) {
       throw new Error('Incomplete credentials');
     }
