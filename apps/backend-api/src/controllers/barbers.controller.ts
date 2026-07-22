@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { createBarber, getBarbers } from '../services/barbers.service';
-
+import {
+  createBarber,
+  getBarbers,
+  getBarberById,
+} from '../services/barbers.service';
 
 export async function getBarbersController(
   req: Request,
@@ -18,6 +21,24 @@ export async function getBarbersController(
   } catch (error) {
     res.status(404).json({
       message: 'Couldnt find barbers',
+    });
+  }
+}
+
+export async function getBarbersByIdController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const barber = await getBarberById(id);
+    res.status(200).json({
+      barber,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find barber',
     });
   }
 }

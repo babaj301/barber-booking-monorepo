@@ -9,6 +9,16 @@ export async function getBarbers() {
   return barbers.rows[0];
 }
 
+export async function getBarberById(id: number) {
+  const barber = await query(`SELECT * FROM barbers WHERE id = $1`, [id]);
+
+  if (barber.rowCount === 0) {
+    throw new Error('Barber does not exist');
+  }
+
+  return barber.rows[0];
+}
+
 export async function createBarber(
   id: number,
   user_id: number,
