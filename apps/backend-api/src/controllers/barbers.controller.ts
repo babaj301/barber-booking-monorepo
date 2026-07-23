@@ -14,6 +14,12 @@ export async function getBarbersController(
   next: NextFunction,
 ) {
   try {
+    const {search} = req.params
+
+    if(search){
+      const barbers = await getBarbers(search)
+    }
+    
     const barbers = await getBarbers();
     if (barbers) {
       res.status(200).json({

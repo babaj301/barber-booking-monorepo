@@ -1,6 +1,15 @@
 import { query } from '../db';
 
-export async function getBarbers() {
+export async function getBarbers(search?: string) {
+  if (search) {
+    const barbers = await query(
+      `SELECT * FROM barbers WHERE name ILIKE '%${search}%'`,
+    );
+    if (barbers.rowCount === 0) {
+      throw new Error('No barbers found');
+    }
+    return barbers.rows[0];
+  }
   const barbers = await query(`SELECT * FROM barbers`);
   if (barbers.rowCount === 0) {
     throw new Error('No barbers found');
