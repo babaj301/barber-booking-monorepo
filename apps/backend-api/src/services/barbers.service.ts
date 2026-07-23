@@ -3,18 +3,21 @@ import { query } from '../db';
 export async function getBarbers(search?: string) {
   if (search) {
     const barbers = await query(
-      `SELECT * FROM barbers WHERE name ILIKE '%${search}%'`,
+      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id WHERE b.bio ILIKE "%${search}%"`,
+    );
+    if (barbers.rowCount === 0) {
+      throw new Error('No barbers found');
+    }
+    return barbers.rows[0];
+  } else {
+    const barbers = await query(
+      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id`,
     );
     if (barbers.rowCount === 0) {
       throw new Error('No barbers found');
     }
     return barbers.rows[0];
   }
-  const barbers = await query(`SELECT * FROM barbers`);
-  if (barbers.rowCount === 0) {
-    throw new Error('No barbers found');
-  }
-  return barbers.rows[0];
 }
 
 export async function getBarberById(id: number) {

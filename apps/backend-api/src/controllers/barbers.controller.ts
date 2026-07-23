@@ -14,17 +14,23 @@ export async function getBarbersController(
   next: NextFunction,
 ) {
   try {
-    const {search} = req.params
+    const { search } = req.query;
+    const searchString = String(search);
 
-    if(search){
-      const barbers = await getBarbers(search)
-    }
-    
-    const barbers = await getBarbers();
-    if (barbers) {
-      res.status(200).json({
-        barbers,
-      });
+    if (search) {
+      const barbers = await getBarbers(searchString);
+      if (barbers) {
+        res.status(200).json({
+          barbers,
+        });
+      }
+    } else {
+      const barbers = await getBarbers();
+      if (barbers) {
+        res.status(200).json({
+          barbers,
+        });
+      }
     }
   } catch (error) {
     res.status(404).json({
