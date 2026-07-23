@@ -3,7 +3,8 @@ import { query } from '../db';
 export async function getBarbers(search?: string) {
   if (search) {
     const barbers = await query(
-      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id WHERE b.bio ILIKE "%${search}%"`,
+      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id WHERE b.bio ILIKE $1`,
+      [`%${search}%`],
     );
     if (barbers.rowCount === 0) {
       throw new Error('No barbers found');
