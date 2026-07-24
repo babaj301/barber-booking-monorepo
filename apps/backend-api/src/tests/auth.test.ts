@@ -7,6 +7,7 @@ describe('Auth Routes', () => {
   // Clear out our test user before running tests so duplicate keys don't trip us up
   beforeAll(async () => {
     await pool.query("DELETE FROM Users WHERE email = 'test@example.com'");
+    await pool.query("SELECT setval('users_id_seq', 1, false)");
   });
 
   describe('POST /api/auth/register', () => {

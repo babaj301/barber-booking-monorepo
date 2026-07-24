@@ -33,7 +33,7 @@ router.delete(
 router.post(
   '/',
   authenticateToken,
-  requireRole(['admin']),
+  requireRole(['admin', 'barber']),
   createBarbersController,
 );
 
