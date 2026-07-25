@@ -4,6 +4,8 @@ import {
   getServicesController,
   getServiceByIdController,
   createServiceController,
+  editServiceController,
+  deleteServiceController,
 } from '../controllers/services.controller';
 import { get } from 'http';
 
@@ -19,5 +21,20 @@ router.post(
   requireRole(['admin']),
   createServiceController,
 );
+
+router.patch(
+  '/:id',
+  authenticateToken,
+  requireRole(['admin']),
+  editServiceController,
+);
+
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole(['admin']),
+  deleteServiceController,
+);
+
 
 export default router;

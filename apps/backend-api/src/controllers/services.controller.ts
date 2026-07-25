@@ -3,6 +3,8 @@ import {
   getServices,
   createService,
   getServiceById,
+  editService,
+  deleteService,
 } from '../services/services.service';
 
 export async function getServicesController(
@@ -67,5 +69,50 @@ export async function createServiceController(
   } catch (error) {
     console.error('Error creating service', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function editServiceController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const { name, price, durationMinutes, is_active } = req.body;
+    const service = await editService(
+      id,
+      name,
+      price,
+      durationMinutes,
+      is_active,
+    );
+    res.status(200).json({
+      message: 'Service edited',
+      service,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find service',
+    });
+  }
+}
+
+export async function deleteServiceController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const service = await deleteService(id);
+    res.status(200).json({
+      message: 'Service deactivated',
+      service,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find service',
+    });
   }
 }

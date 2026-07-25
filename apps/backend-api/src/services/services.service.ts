@@ -27,10 +27,37 @@ export async function getServiceById(id: number) {
   return service.rows[0];
 }
 
-export async function createService( name: string, price: number, durationMinutes: number, is_active: boolean) {
+export async function createService(
+  name: string,
+  price: number,
+  durationMinutes: number,
+  is_active: boolean,
+) {
   const result = await query(
     `INSERT INTO services( name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-    [ name, price, durationMinutes, is_active],
+    [name, price, durationMinutes, is_active],
+  );
+  return result.rows[0];
+}
+
+export async function editService(
+  id: number,
+  name: string,
+  price: number,
+  durationMinutes: number,
+  is_active: boolean,
+) {
+  const result = await query(
+    `UPDATE services SET name = $2, price = $3, duration_minutes = $4, is_active = $5 WHERE id = $1 RETURNING *`,
+    [id, name, price, durationMinutes, is_active],
+  );
+  return result.rows[0];
+}
+
+export async function deleteService(id: number) {
+  const result = await query(
+    `UPDATE services SET is_active = false WHERE id = $1 RETURNING *`,
+    [id],
   );
   return result.rows[0];
 }
