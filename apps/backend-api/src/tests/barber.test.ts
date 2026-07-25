@@ -8,17 +8,20 @@ describe('Barber Routes', () => {
   // Clear out our test user before running tests so duplicate keys don't trip us up
   beforeAll(async () => {
     await pool.query('DELETE FROM barbers WHERE id = 1');
-    // Had to run the barber deleting first to avoid fkey constraints
+    // Had to run the barber deleting query first to avoid fkey constraints
     await pool.query('DELETE FROM Users WHERE id = 2');
     await pool.query("SELECT setval('users_id_seq', 1, false)");
     await pool.query("SELECT setval('barbers_id_seq', 1, false)");
   });
-  describe('POST /api/barber', () => {
+
+  describe('/api/barber', () => {
+      // Create new barber
+
     it('should create a new user and barber to populate the database', async () => {
       // Create a new user to tie the barber to
 
       const barberUser = {
-        name: 'Baber Test User',
+        name: 'Barber Test User',
         email: 'barber@testemail.com',
         password: 'testingtesting',
         user_role: 'barber',
@@ -64,5 +67,10 @@ describe('Barber Routes', () => {
 
       console.log(barberCreationResponse.body);
     });
+
+    it("should fetch the barbers", async () => {
+      
+    })
   });
 });
+
