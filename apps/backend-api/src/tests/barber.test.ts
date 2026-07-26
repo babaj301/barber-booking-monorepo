@@ -14,6 +14,7 @@ describe('Barber Routes', () => {
     await pool.query('DELETE FROM barbers WHERE id = 1');
     // Had to run the barber deleting query first to avoid fkey constraints
     await pool.query('DELETE FROM Users WHERE id = 2');
+    await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
     await pool.query("SELECT setval('users_id_seq', 1, false)");
     await pool.query("SELECT setval('barbers_id_seq', 1, false)");
 
@@ -76,6 +77,15 @@ describe('Barber Routes', () => {
         .send(barberPayload);
 
       console.log(barberCreationResponse.body);
+    });
+  });
+
+  describe('/api/barber', () => {
+    // Get all barbers
+    it('should get all barbers', async () => {
+      const barbers = await request(app).get(`/api/barber`);
+      expect(barbers.status).toBe(200);
+      console.log(barbers.body);
     });
   });
 });
