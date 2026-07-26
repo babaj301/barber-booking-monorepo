@@ -69,7 +69,15 @@ describe('Barber Routes', () => {
     });
 
     it("should fetch the barbers", async () => {
-      
+      const response = await request(app).get(`/api/barber`);
+      expect(response.status).toBe(200);
+      expect(response.body.barbers.length).toBeGreaterThan(0);
+
+      const firstBarber = response.body.barbers[0];
+      expect(firstBarber.id).toBe(1);
+      expect(firstBarber.user_id).toBe(2);
+      expect(firstBarber.bio).toBe('Creating my barber for test');
+      expect(firstBarber.is_active).toBe(true);
     })
   });
 });
