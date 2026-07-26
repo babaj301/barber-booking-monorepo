@@ -75,8 +75,6 @@ describe('Barber Routes', () => {
         .post(`/api/barber`)
         .set('Authorization', `Bearer ${temporaryToken}`)
         .send(barberPayload);
-
-      console.log(barberCreationResponse.body);
     });
   });
 
@@ -85,6 +83,17 @@ describe('Barber Routes', () => {
     it('should get all barbers', async () => {
       const barbers = await request(app).get(`/api/barber`);
       expect(barbers.status).toBe(200);
+      expect(barbers.body).toStrictEqual({
+        barbers: {
+          id: 1,
+          user_id: 2,
+          name: 'Barber Test User',
+          email: 'barber@testemail.com',
+          bio: 'Creating my barber for test',
+          is_active: true,
+        },
+      });
+      expect(barbers.body.barbers.user_id).toBe(temporaryUserId);
       console.log(barbers.body);
     });
   });
