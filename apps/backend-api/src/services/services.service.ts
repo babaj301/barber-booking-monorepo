@@ -10,7 +10,7 @@ export async function getServices(search?: string) {
     }
     return services.rows[0];
   } else {
-    const services = await query(`SELECT * FROM services WHERE`);
+    const services = await query(`SELECT * FROM services`);
 
     if (services.rowCount === 0) {
       throw new Error('No services found');
@@ -28,14 +28,15 @@ export async function getServiceById(id: number) {
 }
 
 export async function createService(
+  id: number,
   name: string,
   price: number,
-  durationMinutes: number,
+  duration_minutes: number,
   is_active: boolean,
 ) {
   const result = await query(
-    `INSERT INTO services( name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-    [name, price, durationMinutes, is_active],
+    `INSERT INTO services( id, name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+    [id, name, price, duration_minutes, is_active],
   );
   return result.rows[0];
 }
@@ -44,12 +45,12 @@ export async function editService(
   id: number,
   name: string,
   price: number,
-  durationMinutes: number,
+  duration_minutes: number,
   is_active: boolean,
 ) {
   const result = await query(
     `UPDATE services SET name = $2, price = $3, duration_minutes = $4, is_active = $5 WHERE id = $1 RETURNING *`,
-    [id, name, price, durationMinutes, is_active],
+    [id, name, price, duration_minutes, is_active],
   );
   return result.rows[0];
 }
@@ -57,6 +58,14 @@ export async function editService(
 export async function deleteService(id: number) {
   const result = await query(
     `UPDATE services SET is_active = false WHERE id = $1 RETURNING *`,
+    [id],
+  );
+  return result.rows[0];
+}
+
+export async function reactivateService(id: number) {
+  const result = await query(
+    `UPDATE services SET is_active = true WHERE id = $1 RETURNING *`,
     [id],
   );
   return result.rows[0];

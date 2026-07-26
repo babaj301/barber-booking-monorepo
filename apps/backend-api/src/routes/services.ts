@@ -6,8 +6,8 @@ import {
   createServiceController,
   editServiceController,
   deleteServiceController,
+  reactivateServiceController,
 } from '../controllers/services.controller';
-import { get } from 'http';
 
 const router = express.Router();
 
@@ -36,5 +36,11 @@ router.delete(
   deleteServiceController,
 );
 
+router.patch(
+  '/reactivate/:id',
+  authenticateToken,
+  requireRole(['admin']),
+  reactivateServiceController,
+);
 
 export default router;

@@ -37,7 +37,7 @@ router.post(
   createBarbersController,
 );
 
-router.post(
+router.patch(
   '/reactivate/:id',
   authenticateToken,
   requireRole(['admin']),

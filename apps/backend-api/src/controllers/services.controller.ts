@@ -5,6 +5,7 @@ import {
   getServiceById,
   editService,
   deleteService,
+  reactivateService,
 } from '../services/services.service';
 
 export async function getServicesController(
@@ -56,11 +57,12 @@ export async function createServiceController(
   next: NextFunction,
 ) {
   try {
-    const { name, price, durationMinutes, is_active } = req.body;
+    const { id, name, price, duration_minutes, is_active } = req.body;
     const newService = await createService(
+      id,
       name,
       price,
-      durationMinutes,
+      duration_minutes,
       is_active,
     );
     return res
@@ -79,12 +81,12 @@ export async function editServiceController(
 ) {
   try {
     const id = parseInt(req.params.id);
-    const { name, price, durationMinutes, is_active } = req.body;
+    const { name, price, duration_minutes, is_active } = req.body;
     const service = await editService(
       id,
       name,
       price,
-      durationMinutes,
+      duration_minutes,
       is_active,
     );
     res.status(200).json({
@@ -113,6 +115,25 @@ export async function deleteServiceController(
   } catch (error) {
     res.status(404).json({
       message: 'Couldnt find service',
+    });
+  }
+}
+
+export async function reactivateServiceController(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = parseInt(req.params.id);
+    const service = await reactivateService(id);
+    res.status(200).json({
+      message: 'Service reactivated',
+      service,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find services',
     });
   }
 }
