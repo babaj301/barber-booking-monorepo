@@ -1,7 +1,10 @@
 import bcrypt from 'bcrypt';
 import { query } from '../db';
 import jwt from 'jsonwebtoken';
-
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from '../middleware/authMiddleware';
 
 export async function registerToken(
   name: string,
@@ -23,8 +26,7 @@ export async function registerToken(
   return newUser;
 }
 
-
-export async function loginUser(email:string, password:string) {
+export async function loginUser(email: string, password: string) {
   // 1. Database look up
   const existingUser = await query(`SELECT * FROM Users WHERE email = $1`, [
     email,
@@ -43,18 +45,19 @@ export async function loginUser(email:string, password:string) {
     throw new Error('Invalid credentials');
   }
 
-  // 4. Generate payload and token
+  // 4. Generate payload and token and refresh token
   const payload = {
     userId: userToSend.id,
     email: userToSend.email,
     user_role: userToSend.user_role,
   };
 
-  const token = jwt.sign(
-    payload,
-    process.env.JWT_SECRET || 'fallback_development_key',
-    { expiresIn: '1h' },
-  );
+  const token = generateAccessToken(payload);
+
+  const refreshToken = generateRefreshToken({
+    id: userToSend.id,
+    email: userToSend.email,
+  });
 
   // 5. Return clean data back to the controller
   return {
@@ -64,5 +67,29 @@ export async function loginUser(email:string, password:string) {
       email: userToSend.email,
       role: userToSend.user_role,
     },
+    refreshToken,
   };
+}
+
+export async function refreshTokenService(refreshToken: string) {
+  try {
+    const decodedToken = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_SECRET || 'fallback_development_key',
+    ) as any;
+
+    // Fetch fresh user data from database
+    const userResult = await query(
+      `SELECT id, email, user_role FROM Users WHERE id = $1`,
+      [decodedToken.id],
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new Error('User not found');
+    }
+
+    return userResult.rows[0];
+  } catch (err) {
+    throw new Error('Invalid refresh token');
+  }
 }

@@ -64,3 +64,19 @@ export function requireRole(allowedRoles: string[]) {
     return next();
   };
 }
+
+export function generateAccessToken(user: any) {
+  const secretKey = process.env.JWT_SECRET || 'fallback_development_key';
+  return jwt.sign(
+    user,
+    process.env.JWT_SECRET || 'fallback_development_key',
+    { expiresIn: '30m' },
+  );
+}
+
+export function generateRefreshToken(user: any) {
+  const refreshSecret = process.env.REFRESH_SECRET || 'fallback_development_key';
+  return jwt.sign({ id: user.id, email: user.email }, refreshSecret, {
+    expiresIn: '7d',
+  });
+}

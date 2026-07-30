@@ -1,8 +1,12 @@
+// src/controllers/auth.controller.ts
 import 'dotenv/config';
 import { NextFunction, Request, Response } from 'express';
-import { registerToken, loginUser } from '../services/auth.service';
-
-
+import {
+  registerToken,
+  loginUser,
+  refreshTokenService,
+} from '../services/auth.service';
+import { generateAccessToken } from '../middleware/authMiddleware';
 
 export const registerUserController = async (
   req: Request,
@@ -20,13 +24,12 @@ export const registerUserController = async (
       saltRounds,
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'User created successfully',
       user: newUser,
     });
   } catch (err) {
-    console.error('Error creating user', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return next(err);
   }
 };
 
@@ -37,21 +40,54 @@ export const loginUserController = async (
 ) => {
   try {
     const { email, password } = req.body;
-
-    // Call the service and await its returned token payload
     const result = await loginUser(email, password);
 
-    // If no errors were thrown, return a 200 OK with the token data
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Login successful',
       token: result.token,
+      user: result.user,
+    });
+  } catch (error: any) {
+    if (error.message === 'Invalid credentials') {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    return next(error);
+  }
+};
+
+export const refreshTokenController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'No refresh token provided' });
+  }
+
+  try {
+    const user = await refreshTokenService(refreshToken);
+
+    const newToken = generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      user_role: user.user_role,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      token: newToken,
     });
   } catch (error) {
-    res.status(500).json({
-      message: 'server error during login',
-    });
-    // Hand unexpected errors (e.g., database connection failure) to global error middleware
-    next(error);
+    return res.status(401).json({ error: 'Invalid or expired refresh token' });
   }
 };

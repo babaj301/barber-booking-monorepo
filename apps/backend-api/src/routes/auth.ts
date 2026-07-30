@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import {
   registerUserController,
   loginUserController,
+  refreshTokenController,
 } from '../controllers/auth.controller';
 import {
   authenticateToken,
@@ -17,6 +18,8 @@ const router = express.Router();
 router.post('/register', registerUserController);
 
 router.post('/login', loginUserController);
+
+router.post('/refresh', refreshTokenController);
 
 // Protected route: returns current authenticated user metadata
 router.get(

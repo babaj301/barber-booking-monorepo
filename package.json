@@ -8,5 +8,11 @@
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend-api",
     "build:all": "npm run build --workspaces"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10"
   }
 }
