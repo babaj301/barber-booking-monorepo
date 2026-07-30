@@ -30,7 +30,11 @@ export const authenticateToken = (
   }
 
   const token = splitHeader[1];
-  const secretKey = process.env.JWT_SECRET || 'fallback_development_key';
+  const secretKey = process.env.JWT_SECRET;
+
+  if (!secretKey) {
+    throw new Error('No secret key found');
+  }
   try {
     const decoded = jwt.verify(
       token,
@@ -66,17 +70,23 @@ export function requireRole(allowedRoles: string[]) {
 }
 
 export function generateAccessToken(user: any) {
-  const secretKey = process.env.JWT_SECRET || 'fallback_development_key';
-  return jwt.sign(
-    user,
-    process.env.JWT_SECRET || 'fallback_development_key',
-    { expiresIn: '30m' },
-  );
+  const secretKey = process.env.JWT_SECRET;
+  if (!secretKey) {
+    throw new Error('No access secret found');
+  }
+  return jwt.sign(user, secretKey, { expiresIn: '30m' });
 }
 
 export function generateRefreshToken(user: any) {
-  const refreshSecret = process.env.REFRESH_SECRET || 'fallback_development_key';
-  return jwt.sign({ id: user.id, email: user.email }, refreshSecret, {
-    expiresIn: '7d',
-  });
+  const refreshSecret = process.env.REFRESH_SECRET;
+  if (!refreshSecret) {
+    throw new Error('No refresh secret found');
+  }
+  return jwt.sign(
+    { id: user.id, email: user.email, user_role: user.user_role },
+    refreshSecret,
+    {
+      expiresIn: '7d',
+    },
+  );
 }

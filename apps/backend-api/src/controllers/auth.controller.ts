@@ -76,6 +76,10 @@ export const refreshTokenController = async (
   try {
     const user = await refreshTokenService(refreshToken);
 
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorzied. User not found' });
+    }
+
     const newToken = generateAccessToken({
       userId: user.id,
       email: user.email,

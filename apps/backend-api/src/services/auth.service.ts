@@ -57,6 +57,7 @@ export async function loginUser(email: string, password: string) {
   const refreshToken = generateRefreshToken({
     id: userToSend.id,
     email: userToSend.email,
+    user_role: userToSend.user_role
   });
 
   // 5. Return clean data back to the controller
