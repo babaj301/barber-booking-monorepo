@@ -1,3 +1,5 @@
+-- 1. Install extension required for mixing scalar types and range types in constraints
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 DROP TYPE IF EXISTS status CASCADE;
 CREATE TYPE status AS ENUM ('pending', 'confirmed', 'in_progress', 'completed', 'cancelled');
@@ -10,5 +12,11 @@ CREATE TABLE Appointments (
     barber_id INT REFERENCES Barbers(id),
     start_time TIMESTAMPTZ,
     end_time TIMESTAMPTZ,
-    current_status status
+    current_status status,
+
+  CONSTRAINT no_overlapping_appointments EXCLUDE USING gist(
+    barber_id WITH =,
+    tstzrange(start_time, end_time) WITH &&
+  )
 );
+
