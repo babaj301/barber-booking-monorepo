@@ -1,0 +1,67 @@
+import { query } from '../db';
+
+interface AppointmentService {
+  client_id: number;
+  barber_id: number;
+  service_id: number[];
+  start_time: string;
+}
+
+export async function createAppointmentService({
+  client_id,
+  barber_id,
+  service_id,
+  start_time,
+}: AppointmentService) {
+  try {
+    await query('BEGIN');
+
+    const servicesResult = await query(
+      `SELECT id, duration_minutes FROM services WHERE id = ANY($1) AND is_active = true`,
+      [service_id],
+    );
+
+    if (servicesResult.rows.length !== service_id.length) {
+      throw new Error(`INVALID_SERVICES`);
+    }
+
+    const totalDurationMinutes = servicesResult.rows.reduce(
+      (sum, s) => sum + s.duration_minutes,
+    );
+
+    const start = new Date(start_time);
+    const end = new Date(start.getTime() + totalDurationMinutes * 60000);
+
+    const appointmentResult = await query(
+      `INSERT INTO Appointments(client_id, barber_id, start_time, end_time, current_status) VALUES($1, $2, $3, $4, 'pending) RETURNING *`,
+      [client_id, barber_id, start.toISOString(), end.toISOString()],
+    );
+
+    const appointment = appointmentResult.rows[0];
+
+    // Batch insert into Appointment_services junction table
+    const serviceInsertQueries = service_id.map((serviceId) =>
+      query(
+        `INSERT INTO Appointment_services (appointment_id, service_id)
+         VALUES ($1, $2)`,
+        [appointment.id, serviceId],
+      ),
+    );
+
+    await Promise.all(serviceInsertQueries);
+
+    await query('COMMIT');
+
+    return appointment;
+  } catch (error: any) {
+    await query('ROLLBACK');
+    // PostgreSQL Exclusion Constraint Code for overlapping slots
+    if (error.code === '23P01') {
+      const conflictError = new Error('SLOT_UNAVAILABLE');
+      (conflictError as any).statusCode = 409;
+      throw conflictError;
+    }
+
+    throw error;
+  }
+}
