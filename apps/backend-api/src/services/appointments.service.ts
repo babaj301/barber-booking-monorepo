@@ -85,4 +85,10 @@ export async function updateAppointmentStatus(id: number, status: string) {
   return result.rows[0];
 }
 
-
+export async function deleteAppointment(id: number) {
+  const result = await query(
+    `UPDATE Appointments SET is_active = false WHERE id = $1 RETURNING *`,
+    [id],
+  );
+  return result.rows[0];
+}
