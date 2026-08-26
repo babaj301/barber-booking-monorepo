@@ -27,14 +27,15 @@ export async function createAppointmentService({
 
     const totalDurationMinutes = servicesResult.rows.reduce(
       (sum, s) => sum + s.duration_minutes,
+      0,
     );
 
     const start = new Date(start_time);
     const end = new Date(start.getTime() + totalDurationMinutes * 60000);
 
     const appointmentResult = await query(
-      `INSERT INTO Appointments(client_id, barber_id, start_time, end_time, current_status) VALUES($1, $2, $3, $4, 'pending) RETURNING *`,
-      [client_id, barber_id, start.toISOString(), end.toISOString()],
+      `INSERT INTO Appointments(client_id, barber_id, start_time, end_time, current_status) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+      [client_id, barber_id, start.toISOString(), end.toISOString(), 'pending'],
     );
 
     const appointment = appointmentResult.rows[0];

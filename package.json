@@ -7,7 +7,8 @@
   ],
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend-api",
-    "build:all": "npm run build --workspaces"
+    "build:all": "npm run build --workspaces",
+    "migrate": "npm run db:migrate --workspaces=apps/backend-api"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7"
