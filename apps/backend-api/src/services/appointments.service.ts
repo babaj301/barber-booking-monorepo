@@ -66,3 +66,13 @@ export async function createAppointmentService({
     throw error;
   }
 }
+
+export async function getAppointmentById(id: number) {
+  const result = await query(`SELECT * FROM Appointments WHERE id = $1`, [id]);
+  return result.rows[0];
+}
+
+export async function getAppointments() {
+  const result = await query(`SELECT * FROM Appointments`);
+  return result.rows[0];
+}
