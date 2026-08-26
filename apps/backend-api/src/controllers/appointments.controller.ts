@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { createAppointmentService, getAppointmentById, getAppointments } from '../services/appointments.service';
+import { createAppointmentService, getAppointmentById, getAppointments, updateAppointmentStatus } from '../services/appointments.service';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 export const createAppointmentController = async (
@@ -62,6 +62,26 @@ export const getAppointmentsController = async (
   } catch (error) {
     res.status(404).json({
       message: 'Couldnt find appointments',
+    });
+  }
+};
+
+export const updateAppointmentStatusController = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { status } = req.body;
+    const appointment = await updateAppointmentStatus(id, status);
+    res.status(200).json({
+      message: 'Appointment status updated',
+      appointment,
+    });
+  } catch (error) {
+    res.status(404).json({
+      message: 'Couldnt find appointment',
     });
   }
 };

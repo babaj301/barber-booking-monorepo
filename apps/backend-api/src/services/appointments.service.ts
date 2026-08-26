@@ -76,3 +76,13 @@ export async function getAppointments() {
   const result = await query(`SELECT * FROM Appointments`);
   return result.rows[0];
 }
+
+export async function updateAppointmentStatus(id: number, status: string) {
+  const result = await query(
+    `UPDATE Appointments SET current_status = $2 WHERE id = $1 RETURNING *`,
+    [id, status],
+  );
+  return result.rows[0];
+}
+
+
