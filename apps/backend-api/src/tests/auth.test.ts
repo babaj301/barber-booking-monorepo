@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../app';
 import pool from '../db';
@@ -47,5 +47,10 @@ describe('Auth Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Login successful');
     });
+  });
+
+  afterAll(async () => {
+    await pool.query("DELETE FROM Users WHERE email = 'test@example.com'");
+    await pool.query("SELECT setval('users_id_seq', 1, false)");
   });
 });

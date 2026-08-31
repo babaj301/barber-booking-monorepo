@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../app';
 import pool from '../db';
-import { query } from '../db';
 
 describe('Barber Routes', () => {
   // Clear out our test user before running tests so duplicate keys don't trip us up
@@ -13,7 +12,7 @@ describe('Barber Routes', () => {
   beforeAll(async () => {
     await pool.query('DELETE FROM barbers WHERE id = 1');
     // Had to run the barber deleting query first to avoid fkey constraints
-    await pool.query('DELETE FROM Users WHERE id = 2');
+    await pool.query('DELETE FROM Users WHERE id = 1');
     await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
     await pool.query("SELECT setval('users_id_seq', 1, false)");
     await pool.query("SELECT setval('barbers_id_seq', 1, false)");
@@ -86,7 +85,7 @@ describe('Barber Routes', () => {
       expect(barbers.body).toStrictEqual({
         barbers: {
           id: 1,
-          user_id: 2,
+          user_id: 1,
           name: 'Barber Test User',
           email: 'barber@testemail.com',
           bio: 'Creating my barber for test',
@@ -96,5 +95,13 @@ describe('Barber Routes', () => {
       expect(barbers.body.barbers.user_id).toBe(temporaryUserId);
       console.log(barbers.body);
     });
+  });
+
+  afterAll(async () => {
+    await pool.query('DELETE FROM barbers WHERE id = 1');
+    await pool.query('DELETE FROM Users WHERE id = 1');
+    await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
+    await pool.query("SELECT setval('users_id_seq', 1, false)");
+    await pool.query("SELECT setval('barbers_id_seq', 1, false)");
   });
 });
