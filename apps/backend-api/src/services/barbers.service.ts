@@ -9,7 +9,7 @@ export async function getBarbers(search?: string) {
     if (barbers.rowCount === 0) {
       throw new Error('No barbers found');
     }
-    return barbers.rows[0];
+    return barbers.rows;
   } else {
     const barbers = await query(
       `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id`,
@@ -17,7 +17,7 @@ export async function getBarbers(search?: string) {
     if (barbers.rowCount === 0) {
       throw new Error('No barbers found');
     }
-    return barbers.rows[0];
+    return barbers.rows;
   }
 }
 

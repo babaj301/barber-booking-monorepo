@@ -74,7 +74,7 @@ export async function getAppointmentById(id: number) {
 
 export async function getAppointments() {
   const result = await query(`SELECT * FROM Appointments`);
-  return result.rows[0];
+  return result.rows;
 }
 
 export async function updateAppointmentStatus(id: number, status: string) {

@@ -8,14 +8,14 @@ export async function getServices(search?: string) {
     if (services.rowCount === 0) {
       throw new Error('No services found');
     }
-    return services.rows[0];
+    return services.rows;
   } else {
     const services = await query(`SELECT * FROM services`);
 
     if (services.rowCount === 0) {
       throw new Error('No services found');
     }
-    return services.rows[0];
+    return services.rows;
   }
 }
 
