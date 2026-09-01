@@ -57,9 +57,8 @@ export async function createServiceController(
   next: NextFunction,
 ) {
   try {
-    const { id, name, price, duration_minutes, is_active } = req.body;
+    const {name, price, duration_minutes, is_active } = req.body;
     const newService = await createService(
-      id,
       name,
       price,
       duration_minutes,

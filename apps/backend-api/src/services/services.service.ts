@@ -28,15 +28,14 @@ export async function getServiceById(id: number) {
 }
 
 export async function createService(
-  id: number,
   name: string,
   price: number,
   duration_minutes: number,
   is_active: boolean,
 ) {
   const result = await query(
-    `INSERT INTO services( id, name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-    [id, name, price, duration_minutes, is_active],
+    `INSERT INTO services(name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+    [name, price, duration_minutes, is_active],
   );
   return result.rows[0];
 }

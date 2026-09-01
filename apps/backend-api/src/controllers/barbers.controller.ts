@@ -63,11 +63,11 @@ export async function createBarbersController(
   next: NextFunction,
 ) {
   try {
-    const { id, user_id, bio, is_active } = req.body;
-    if (!id || !user_id) {
+    const { user_id, bio, is_active } = req.body;
+    if (!user_id) {
       throw new Error('Incomplete credentials');
     }
-    const newBarber = await createBarber(id, user_id, bio, is_active);
+    const newBarber = await createBarber(user_id, bio, is_active);
     return res
       .status(201)
       .json({ message: 'Barber created succesfully', barber: newBarber });

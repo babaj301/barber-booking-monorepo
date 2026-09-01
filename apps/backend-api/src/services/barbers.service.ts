@@ -40,14 +40,13 @@ export async function editBarber(id: number, bio: string) {
 }
 
 export async function createBarber(
-  id: number,
   user_id: number,
   bio: string,
   is_active: boolean,
 ) {
   const result = await query(
-    `INSERT INTO barbers(id, user_id, bio, is_active) VALUES($1, $2, $3, $4) RETURNING *`,
-    [id, user_id, bio, is_active],
+    `INSERT INTO barbers(user_id, bio, is_active) VALUES($1, $2, $3, $4) RETURNING *`,
+    [user_id, bio, is_active],
   );
 
   const newBarber = result.rows[0];

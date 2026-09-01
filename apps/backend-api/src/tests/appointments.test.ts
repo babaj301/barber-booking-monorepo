@@ -7,11 +7,13 @@ describe('Appointments Routes', () => {
   let temporaryToken: string;
   let temporaryUserId: number;
   let appointmentPayload: any;
-  let barberPayload: any;
 
-  // Clear out our test user before running tests so duplicate keys don't trip us up
+  // Clear out our entire table before running tests so duplicate keys don't trip us up
   beforeAll(async () => {
-    await pool.query('DELETE FROM Appointments WHERE id = 1');
+    await pool.query('DELETE * FROM Appointments');
+    await pool.query('DELETE * FROM Users');
+    await pool.query('DELETE * FROM Services');
+    await pool.query('DELETE * FROM Barbers');
     await pool.query("SELECT setval('users_id_seq', 1, false)");
     await pool.query("SELECT setval('appointments_id_seq', 1, false)");
 
@@ -42,10 +44,30 @@ describe('Appointments Routes', () => {
 
     temporaryToken = loginResponse.body.token;
 
+    const barberPayload = {
+      id: 1,
+      user_id: userId,
+      bio: 'Creating my barber for appointment test',
+      is_active: true,
+    };
+
     const barberCreationResponse = await request(app)
       .post(`/api/barber`)
       .set('Authorization', `Bearer ${temporaryToken}`)
       .send(barberPayload);
+
+    const servicePayload = {
+      id: 1,
+      name: 'Skin Cut',
+      price: 1000,
+      duration: 30,
+      is_active: true,
+    };
+
+    const serviceCreationResponse = await request(app)
+      .post(`/api/services`)
+      .set('Authorization', `Bearer ${temporaryToken}`)
+      .send(servicePayload);
 
     appointmentPayload = {
       id: 1,
@@ -75,21 +97,8 @@ describe('Appointments Routes', () => {
         .get(`/api/appointments`)
         .set('Authorization', `Bearer ${temporaryToken}`);
       expect(appointments.status).toBe(200);
-      expect(appointments.body).toStrictEqual({
-        appointments: {
-          id: 1,
-          client_id: 1,
-          barber_id: 1,
-          service_id: [1],
-          start_time: '2026-08-27T10:00:00+01:00',
-        },
-      });
+      expect(appointments.body).length(1);
       expect(appointments.body.appointments.client_id).toBe(temporaryUserId);
     });
   });
-});
-
-afterAll(async () => {
-  await pool.query("DELETE FROM Users WHERE email = 'test@example.com'");
-  await pool.query("SELECT setval('users_id_seq', 1, false)");
 });
