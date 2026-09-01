@@ -4,104 +4,79 @@ import app from '../app';
 import pool from '../db';
 
 describe('Barber Routes', () => {
-  // Clear out our test user before running tests so duplicate keys don't trip us up
   let temporaryToken: string;
   let temporaryUserId: number;
   let barberPayload: any;
 
-  beforeAll(async () => {
-    await pool.query('DELETE FROM barbers WHERE id = 1');
-    // Had to run the barber deleting query first to avoid fkey constraints
-    await pool.query('DELETE FROM Users WHERE id = 1');
-    await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
-    await pool.query("SELECT setval('users_id_seq', 1, false)");
-    await pool.query("SELECT setval('barbers_id_seq', 1, false)");
+  const testEmail = 'barber@testemail.com';
 
-    // CREATE TEST USER
+  async function cleanup() {
+    await pool.query(
+      `DELETE FROM barbers WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
+      [testEmail],
+    );
+    await pool.query(`DELETE FROM users WHERE email = $1`, [testEmail]);
+  }
+
+  beforeAll(async () => {
+    await cleanup();
+
     const barberUser = {
       name: 'Barber Test User',
-      email: 'barber@testemail.com',
+      email: testEmail,
       password: 'testingtesting',
       user_role: 'barber',
     };
 
     const registerResponse = await request(app)
-      .post(`/api/auth/register`)
+      .post('/api/auth/register')
       .send(barberUser);
 
-    console.log(registerResponse.body);
+    temporaryUserId = registerResponse.body.user.id;
 
-    // Get the id from the response of fetching the user
-
-    const userId = registerResponse.body.user.id;
-
-    // put user id into temporaryUserId for use in creating barber
-    temporaryUserId = userId;
-
-    const userLoginDetails = {
-      email: barberUser.email,
-      password: barberUser.password,
-    };
-
-    // Login as the user to get token
     const loginResponse = await request(app)
-      .post(`/api/auth/login`)
-      .send(userLoginDetails);
+      .post('/api/auth/login')
+      .send({ email: barberUser.email, password: barberUser.password });
 
-    console.log(loginResponse.body);
+    temporaryToken = loginResponse.body.token;
 
-    // Get the token from the login response
-    const token = loginResponse.body.token;
-
-    // put token into temporaryToken for use in creating barber
-    temporaryToken = token;
-
-    // Create the barber
     barberPayload = {
-      id: 1,
-      user_id: userId,
+      user_id: temporaryUserId,
       bio: 'Creating my barber for test',
       is_active: true,
     };
   });
 
-  describe('/api/barber', () => {
-    // Create new barber
+  afterAll(async () => {
+    await cleanup();
+  });
 
-    it('should create a new user and barber to populate the database', async () => {
-      // Create a new user to tie the barber to
+  describe('/api/barber', () => {
+    it('should create a new barber tied to the test user', async () => {
       const barberCreationResponse = await request(app)
-        .post(`/api/barber`)
+        .post('/api/barber')
         .set('Authorization', `Bearer ${temporaryToken}`)
         .send(barberPayload);
+
+      expect(barberCreationResponse.status).toBe(201);
+      expect(barberCreationResponse.body.barber.user_id).toBe(temporaryUserId);
     });
   });
 
   describe('/api/barber', () => {
-    // Get all barbers
     it('should get all barbers', async () => {
-      const barbers = await request(app).get(`/api/barber`);
+      const barbers = await request(app).get('/api/barber');
+
       expect(barbers.status).toBe(200);
-      expect(barbers.body).toStrictEqual({
-        barbers: {
-          id: 1,
-          user_id: 1,
+      expect(barbers.body.barbers).toContainEqual(
+        expect.objectContaining({
+          user_id: temporaryUserId,
           name: 'Barber Test User',
-          email: 'barber@testemail.com',
+          email: testEmail,
           bio: 'Creating my barber for test',
           is_active: true,
-        },
-      });
-      expect(barbers.body.barbers.user_id).toBe(temporaryUserId);
-      console.log(barbers.body);
+        }),
+      );
     });
-  });
-
-  afterAll(async () => {
-    await pool.query('DELETE FROM barbers WHERE id = 1');
-    await pool.query('DELETE FROM Users WHERE id = 1');
-    await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
-    await pool.query("SELECT setval('users_id_seq', 1, false)");
-    await pool.query("SELECT setval('barbers_id_seq', 1, false)");
   });
 });

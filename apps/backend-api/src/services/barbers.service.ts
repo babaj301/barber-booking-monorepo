@@ -1,24 +1,19 @@
 import { query } from '../db';
 
 export async function getBarbers(search?: string) {
-  if (search) {
-    const barbers = await query(
-      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id WHERE b.bio ILIKE $1`,
-      [`%${search}%`],
-    );
-    if (barbers.rowCount === 0) {
-      throw new Error('No barbers found');
-    }
-    return barbers.rows;
-  } else {
-    const barbers = await query(
-      `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id`,
-    );
-    if (barbers.rowCount === 0) {
-      throw new Error('No barbers found');
-    }
-    return barbers.rows;
+  const barbers = search
+    ? await query(
+        `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id WHERE b.bio ILIKE $1`,
+        [`%${search}%`],
+      )
+    : await query(
+        `SELECT b.*, t2.name, t2.email FROM Barbers AS b INNER JOIN users as t2 ON b.user_id = t2.id`,
+      );
+
+  if (barbers.rowCount === 0) {
+    throw new Error('No barbers found');
   }
+  return barbers.rows;
 }
 
 export async function getBarberById(id: number) {
@@ -45,13 +40,10 @@ export async function createBarber(
   is_active: boolean,
 ) {
   const result = await query(
-    `INSERT INTO barbers(user_id, bio, is_active) VALUES($1, $2, $3, $4) RETURNING *`,
+    `INSERT INTO barbers(user_id, bio, is_active) VALUES($1, $2, $3) RETURNING *`,
     [user_id, bio, is_active],
   );
-
-  const newBarber = result.rows[0];
-
-  return newBarber;
+  return result.rows[0];
 }
 
 export async function deleteBarber(id: number) {

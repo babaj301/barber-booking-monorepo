@@ -15,27 +15,13 @@ export async function getBarbersController(
 ) {
   try {
     const { search } = req.query;
-    const searchString = String(search);
-
-    if (search) {
-      const barbers = await getBarbers(searchString);
-      if (barbers) {
-        res.status(200).json({
-          barbers,
-        });
-      }
-    } else {
-      const barbers = await getBarbers();
-      if (barbers) {
-        res.status(200).json({
-          barbers,
-        });
-      }
-    }
+    const barbers = search
+      ? await getBarbers(String(search))
+      : await getBarbers();
+    res.status(200).json({ barbers });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find barbers',
-    });
+    console.error('Error fetching barbers', error);
+    res.status(404).json({ message: "Couldn't find barbers" });
   }
 }
 
@@ -47,13 +33,10 @@ export async function getBarbersByIdController(
   try {
     const id = parseInt(req.params.id);
     const barber = await getBarberById(id);
-    res.status(200).json({
-      barber,
-    });
+    res.status(200).json({ barber });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find barber',
-    });
+    console.error('Error fetching barber', error);
+    res.status(404).json({ message: "Couldn't find barber" });
   }
 }
 
@@ -91,9 +74,8 @@ export async function editBarberController(
       barber,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find barber',
-    });
+    console.error('Error editing barber', error);
+    res.status(404).json({ message: "Couldn't find barber" });
   }
 }
 
@@ -110,9 +92,8 @@ export async function deleteBarberController(
       barber,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find barber',
-    });
+    console.error('Error deleting barber', error);
+    res.status(404).json({ message: "Couldn't find barber" });
   }
 }
 
@@ -129,8 +110,7 @@ export async function reactivateBarberController(
       barber,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find barber',
-    });
+    console.error('Error reactivating barber', error);
+    res.status(404).json({ message: "Couldn't find barber" });
   }
 }

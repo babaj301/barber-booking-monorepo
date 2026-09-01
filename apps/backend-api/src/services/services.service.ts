@@ -1,22 +1,14 @@
 import { query } from '../db';
 
 export async function getServices(search?: string) {
-  if (search) {
-    const services = await query(`SELECT * FROM services WHERE name ILIKE $1`, [
-      `%${search}%`,
-    ]);
-    if (services.rowCount === 0) {
-      throw new Error('No services found');
-    }
-    return services.rows;
-  } else {
-    const services = await query(`SELECT * FROM services`);
+  const services = search
+    ? await query(`SELECT * FROM services WHERE name ILIKE $1`, [`%${search}%`])
+    : await query(`SELECT * FROM services`);
 
-    if (services.rowCount === 0) {
-      throw new Error('No services found');
-    }
-    return services.rows;
+  if (services.rowCount === 0) {
+    throw new Error('No services found');
   }
+  return services.rows;
 }
 
 export async function getServiceById(id: number) {
@@ -34,7 +26,7 @@ export async function createService(
   is_active: boolean,
 ) {
   const result = await query(
-    `INSERT INTO services(name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+    `INSERT INTO services(name, price, duration_minutes, is_active) VALUES($1, $2, $3, $4) RETURNING *`,
     [name, price, duration_minutes, is_active],
   );
   return result.rows[0];

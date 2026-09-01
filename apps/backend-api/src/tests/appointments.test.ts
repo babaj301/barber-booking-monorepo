@@ -6,20 +6,43 @@ import pool from '../db';
 describe('Appointments Routes', () => {
   let temporaryToken: string;
   let temporaryUserId: number;
+  let barberId: number;
+  let serviceId: number;
   let appointmentPayload: any;
 
-  // Clear out our entire table before running tests so duplicate keys don't trip us up
+  const testEmail = 'test@example.com';
+  const serviceName = 'Skin Cut';
+
+  async function cleanup() {
+    await pool.query(`
+      DELETE FROM appointment_services
+      WHERE appointment_id IN (
+        SELECT a.id FROM appointments a
+        JOIN users u ON u.id = a.client_id
+        WHERE u.email = $1
+      )
+    `, [testEmail]);
+
+    await pool.query(`
+      DELETE FROM appointments
+      WHERE client_id = (SELECT id FROM users WHERE email = $1)
+    `, [testEmail]);
+
+    await pool.query(`
+      DELETE FROM barbers
+      WHERE user_id = (SELECT id FROM users WHERE email = $1)
+    `, [testEmail]);
+
+    await pool.query(`DELETE FROM services WHERE name = $1`, [serviceName]);
+    await pool.query(`DELETE FROM users WHERE email = $1`, [testEmail]);
+  }
+
   beforeAll(async () => {
-    await pool.query('DELETE * FROM Appointments');
-    await pool.query('DELETE * FROM Users');
-    await pool.query('DELETE * FROM Services');
-    await pool.query('DELETE * FROM Barbers');
-    await pool.query("SELECT setval('users_id_seq', 1, false)");
-    await pool.query("SELECT setval('appointments_id_seq', 1, false)");
+    await cleanup();
 
     const testUser = {
       name: 'Test Engineer',
-      email: 'test@example.com',
+      email: testEmail,
       password: 'Password123!',
       user_role: 'admin',
     };
@@ -28,77 +51,74 @@ describe('Appointments Routes', () => {
       .post('/api/auth/register')
       .send(testUser);
 
-    const userId = registerResponse.body.user.id;
-
-    // put user id into temporaryUserId for use in creating barber
-    temporaryUserId = userId;
-
-    const userLoginDetails = {
-      email: testUser.email,
-      password: testUser.password,
-    };
+    temporaryUserId = registerResponse.body.user.id;
 
     const loginResponse = await request(app)
       .post('/api/auth/login')
-      .send(userLoginDetails);
+      .send({ email: testUser.email, password: testUser.password });
 
     temporaryToken = loginResponse.body.token;
 
-    const barberPayload = {
-      id: 1,
-      user_id: userId,
+    const barberPayloadForCreation = {
+      user_id: temporaryUserId,
       bio: 'Creating my barber for appointment test',
       is_active: true,
     };
 
     const barberCreationResponse = await request(app)
-      .post(`/api/barber`)
+      .post('/api/barber')
       .set('Authorization', `Bearer ${temporaryToken}`)
-      .send(barberPayload);
+      .send(barberPayloadForCreation);
+
+    barberId = barberCreationResponse.body.barber.id;
 
     const servicePayload = {
-      id: 1,
-      name: 'Skin Cut',
+      name: serviceName,
       price: 1000,
-      duration: 30,
+      duration_minutes: 30,
       is_active: true,
     };
 
     const serviceCreationResponse = await request(app)
-      .post(`/api/services`)
+      .post('/api/services')
       .set('Authorization', `Bearer ${temporaryToken}`)
       .send(servicePayload);
 
+    serviceId = serviceCreationResponse.body.service.id;
+
     appointmentPayload = {
-      id: 1,
-      client_id: 1,
-      barber_id: 1,
-      service_id: [1],
+      client_id: temporaryUserId,
+      barber_id: barberId,
+      service_id: [serviceId],
       start_time: '2026-08-27T10:00:00+01:00',
     };
   });
 
+  afterAll(async () => {
+    await cleanup();
+  });
+
   describe('/api/appointments', () => {
-    // Create new barber
     it('should create a new appointment', async () => {
       const appointmentCreationResponse = await request(app)
-        .post(`/api/appointments`)
+        .post('/api/appointments')
         .set('Authorization', `Bearer ${temporaryToken}`)
         .send(appointmentPayload);
 
       expect(appointmentCreationResponse.status).toBe(201);
+      expect(appointmentCreationResponse.body.appointment.client_id).toBe(temporaryUserId);
     });
   });
 
   describe('/api/appointments', () => {
-    // Get all appointments
     it('should get all appointments', async () => {
       const appointments = await request(app)
-        .get(`/api/appointments`)
+        .get('/api/appointments')
         .set('Authorization', `Bearer ${temporaryToken}`);
+
       expect(appointments.status).toBe(200);
-      expect(appointments.body).length(1);
-      expect(appointments.body.appointments.client_id).toBe(temporaryUserId);
+      expect(appointments.body.appointments).toHaveLength(1);
+      expect(appointments.body.appointments[0].client_id).toBe(temporaryUserId);
     });
   });
 });

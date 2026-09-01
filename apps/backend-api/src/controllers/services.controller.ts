@@ -15,21 +15,13 @@ export async function getServicesController(
 ) {
   try {
     const { search } = req.query;
-    if (search) {
-      const services = await getServices(search as string);
-      res.status(200).json({
-        services,
-      });
-    } else {
-      const services = await getServices();
-      res.status(200).json({
-        services,
-      });
-    }
+    const services = search
+      ? await getServices(search as string)
+      : await getServices();
+    res.status(200).json({ services });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find services',
-    });
+    console.error('Error fetching services', error);
+    res.status(404).json({ message: "Couldn't find services" });
   }
 }
 
@@ -41,13 +33,10 @@ export async function getServiceByIdController(
   try {
     const id = parseInt(req.params.id);
     const service = await getServiceById(id);
-    res.status(200).json({
-      service,
-    });
+    res.status(200).json({ service });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find service',
-    });
+    console.error('Error fetching service', error);
+    res.status(404).json({ message: "Couldn't find service" });
   }
 }
 
@@ -57,7 +46,7 @@ export async function createServiceController(
   next: NextFunction,
 ) {
   try {
-    const {name, price, duration_minutes, is_active } = req.body;
+    const { name, price, duration_minutes, is_active } = req.body;
     const newService = await createService(
       name,
       price,
@@ -93,9 +82,8 @@ export async function editServiceController(
       service,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find service',
-    });
+    console.error('Error editing service', error);
+    res.status(404).json({ message: "Couldn't find service" });
   }
 }
 
@@ -112,9 +100,8 @@ export async function deleteServiceController(
       service,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find service',
-    });
+    console.error('Error deleting service', error);
+    res.status(404).json({ message: "Couldn't find service" });
   }
 }
 
@@ -131,8 +118,7 @@ export async function reactivateServiceController(
       service,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find services',
-    });
+    console.error('Error reactivating service', error);
+    res.status(404).json({ message: "Couldn't find service" });
   }
 }

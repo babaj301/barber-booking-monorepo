@@ -40,7 +40,6 @@ export async function createAppointmentService({
 
     const appointment = appointmentResult.rows[0];
 
-    // Batch insert into Appointment_services junction table
     const serviceInsertQueries = service_id.map((serviceId) =>
       query(
         `INSERT INTO Appointment_services (appointment_id, service_id)
@@ -56,7 +55,6 @@ export async function createAppointmentService({
     return appointment;
   } catch (error: any) {
     await query('ROLLBACK');
-    // PostgreSQL Exclusion Constraint Code for overlapping slots
     if (error.code === '23P01') {
       const conflictError = new Error('SLOT_UNAVAILABLE');
       (conflictError as any).statusCode = 409;

@@ -16,8 +16,10 @@ export const createAppointmentController = async (
   try {
     const { client_id, barber_id, service_id, start_time } = req.body;
 
-    if (!client_id || !barber_id || service_id.length === 0 || !start_time) {
-      throw new Error('Incomplete credentials');
+    if (!client_id || !barber_id || !Array.isArray(service_id) || service_id.length === 0 || !start_time) {
+      const validationError: any = new Error('Incomplete credentials');
+      validationError.statusCode = 400;
+      throw validationError;
     }
 
     const newAppointment = await createAppointmentService({
@@ -31,8 +33,11 @@ export const createAppointmentController = async (
       message: 'Appointment created successfully',
       appointment: newAppointment,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating appointment', error);
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -45,13 +50,13 @@ export const getAppointmentByIdController = async (
   try {
     const id = parseInt(req.params.id);
     const appointment = await getAppointmentById(id);
-    res.status(200).json({
-      appointment,
-    });
+    if (!appointment) {
+      return res.status(404).json({ message: "Couldn't find appointment" });
+    }
+    res.status(200).json({ appointment });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find appointment',
-    });
+    console.error('Error fetching appointment', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -62,13 +67,10 @@ export const getAppointmentsController = async (
 ) => {
   try {
     const appointments = await getAppointments();
-    res.status(200).json({
-      appointments,
-    });
+    res.status(200).json({ appointments });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find appointments',
-    });
+    console.error('Error fetching appointments', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -81,14 +83,16 @@ export const updateAppointmentStatusController = async (
     const id = parseInt(req.params.id);
     const { status } = req.body;
     const appointment = await updateAppointmentStatus(id, status);
+    if (!appointment) {
+      return res.status(404).json({ message: "Couldn't find appointment" });
+    }
     res.status(200).json({
       message: 'Appointment status updated',
       appointment,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find appointment',
-    });
+    console.error('Error updating appointment status', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -100,13 +104,15 @@ export const deleteAppointmentController = async (
   try {
     const id = parseInt(req.params.id);
     const appointment = await deleteAppointment(id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Couldn't find appointment" });
+    }
     res.status(200).json({
       message: 'Appointment deleted',
       appointment,
     });
   } catch (error) {
-    res.status(404).json({
-      message: 'Couldnt find appointment',
-    });
+    console.error('Error deleting appointment', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
