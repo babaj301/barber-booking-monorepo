@@ -4,15 +4,22 @@ import {
   createBarberExceptionService,
   deleteBarberExceptionService,
   getAvailableTimeSlotsService,
-} from '../services/availability.service';
+} from '../services/availabilty.service';
 
 export const createExceptionController = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const { barber_id, exception_date, is_day_off, start_time, end_time, reason } = req.body;
+    const {
+      barber_id,
+      exception_date,
+      is_day_off,
+      start_time,
+      end_time,
+      reason,
+    } = req.body;
 
     if (!barber_id || !exception_date || is_day_off === undefined) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -32,14 +39,16 @@ export const createExceptionController = async (
       exception,
     });
   } catch (error: any) {
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res
+      .status(500)
+      .json({ error: error.message || 'Internal server error' });
   }
 };
 
 export const deleteExceptionController = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const exceptionId = parseInt(req.params.id, 10);
@@ -53,14 +62,16 @@ export const deleteExceptionController = async (
 
     return res.status(200).json({ message: 'Exception deleted successfully' });
   } catch (error: any) {
-    return res.status(404).json({ error: error.message || 'Exception not found' });
+    return res
+      .status(404)
+      .json({ error: error.message || 'Exception not found' });
   }
 };
 
 export const getAvailableSlotsController = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const barberId = parseInt(req.query.barber_id as string, 10);
@@ -68,10 +79,16 @@ export const getAvailableSlotsController = async (
     const duration = parseInt(req.query.duration as string, 10) || 30;
 
     if (!barberId || !dateStr) {
-      return res.status(400).json({ error: 'barber_id and date query parameters are required' });
+      return res
+        .status(400)
+        .json({ error: 'barber_id and date query parameters are required' });
     }
 
-    const slots = await getAvailableTimeSlotsService(barberId, dateStr, duration);
+    const slots = await getAvailableTimeSlotsService(
+      barberId,
+      dateStr,
+      duration,
+    );
 
     return res.status(200).json({
       barber_id: barberId,
@@ -79,6 +96,8 @@ export const getAvailableSlotsController = async (
       slots,
     });
   } catch (error: any) {
-    return res.status(500).json({ error: 'Failed to generate available slots' });
+    return res
+      .status(500)
+      .json({ error: 'Failed to generate available slots' });
   }
 };
