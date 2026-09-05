@@ -4,7 +4,7 @@ import {
   createBarberExceptionService,
   deleteBarberExceptionService,
   getAvailableTimeSlotsService,
-} from '../services/availabilty.service';
+} from '../services/availability.service';
 
 export const createExceptionController = async (
   req: AuthenticatedRequest,

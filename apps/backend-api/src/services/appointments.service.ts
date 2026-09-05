@@ -1,4 +1,5 @@
 import { query } from '../db';
+import { getBarberShiftForDate } from './availability.service';
 
 interface AppointmentService {
   client_id: number;
@@ -16,8 +17,9 @@ export async function createAppointmentService({
   try {
     await query('BEGIN');
 
+    // 1. Validate Services
     const servicesResult = await query(
-      `SELECT id, duration_minutes FROM services WHERE id = ANY($1) AND is_active = true`,
+      `SELECT id, duration_minutes FROM Services WHERE id = ANY($1) AND is_active = true`,
       [service_id],
     );
 
@@ -32,29 +34,42 @@ export async function createAppointmentService({
 
     const start = new Date(start_time);
     const end = new Date(start.getTime() + totalDurationMinutes * 60000);
+    const dateStr = start.toISOString().split('T')[0];
 
+    // 2. Validate against Barber Working Shift / Exceptions
+    const shift = await getBarberShiftForDate(barber_id, dateStr);
+    if (!shift) {
+      throw new Error('BARBER_NOT_WORKING_ON_DATE');
+    }
+
+    const shiftStart = new Date(`${dateStr}T${shift.start_time}Z`);
+    const shiftEnd = new Date(`${dateStr}T${shift.end_time}Z`);
+
+    if (start < shiftStart || end > shiftEnd) {
+      throw new Error('APPOINTMENT_OUTSIDE_WORKING_HOURS');
+    }
+
+    // 3. Create Appointment
     const appointmentResult = await query(
-      `INSERT INTO Appointments(client_id, barber_id, start_time, end_time, current_status) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO Appointments(client_id, barber_id, start_time, end_time, current_status) 
+       VALUES($1, $2, $3, $4, $5) RETURNING *`,
       [client_id, barber_id, start.toISOString(), end.toISOString(), 'pending'],
     );
 
     const appointment = appointmentResult.rows[0];
 
-    const serviceInsertQueries = service_id.map((serviceId) =>
-      query(
-        `INSERT INTO Appointment_services (appointment_id, service_id)
-         VALUES ($1, $2)`,
-        [appointment.id, serviceId],
-      ),
+    // 4. Multi-row Insert into Appointment_services
+    const values = service_id.map((_, i) => `($1, $${i + 2})`).join(', ');
+    await query(
+      `INSERT INTO Appointment_services (appointment_id, service_id) VALUES ${values}`,
+      [appointment.id, ...service_id],
     );
 
-    await Promise.all(serviceInsertQueries);
-
     await query('COMMIT');
-
     return appointment;
   } catch (error: any) {
     await query('ROLLBACK');
+
     if (error.code === '23P01') {
       const conflictError = new Error('SLOT_UNAVAILABLE');
       (conflictError as any).statusCode = 409;
