@@ -1,5 +1,15 @@
--- Up Migration: Exceptions & Availability
+-- 1. Create extension for range constraints if not created yet
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+-- 2. Create custom timerange type if not exists
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'timerange') THEN
+        CREATE TYPE timerange AS RANGE (subtype = time);
+    END IF;
+END $$;
+
+-- 3. Re-create Exceptions Table
 DROP TABLE IF EXISTS Exceptions CASCADE;
 
 CREATE TABLE Exceptions (
@@ -10,15 +20,15 @@ CREATE TABLE Exceptions (
     shift_hours TIMERANGE,
     reason TEXT,
     
-    -- Enforce that if it's not a full day off, shift_hours must be provided
+    -- Enforce shift_hours when is_day_off is false
     CONSTRAINT chk_exception_shift_hours CHECK (
         (is_day_off = true) OR (is_day_off = false AND shift_hours IS NOT NULL)
     ),
 
-    -- Ensure a barber can only have one exception per date
+    -- Ensure a barber only has one exception per date
     CONSTRAINT unique_barber_exception_date UNIQUE(barber_id, exception_date)
 );
 
--- Index for high-performance availability lookups by date
-CREATE INDEX idx_exceptions_barber_date ON Exceptions(barber_id, exception_date);
-CREATE INDEX idx_availability_barber_day ON Availability(barber_id, day_of_week);
+-- 4. Create Performance Indexes for Fast Availability Lookups
+CREATE INDEX IF NOT EXISTS idx_exceptions_barber_date ON Exceptions(barber_id, exception_date);
+CREATE INDEX IF NOT EXISTS idx_availability_barber_day ON Availability(barber_id, day_of_week);
