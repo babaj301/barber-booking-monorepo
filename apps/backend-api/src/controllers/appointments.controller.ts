@@ -1,6 +1,7 @@
 import { NextFunction, Response } from 'express';
 import {
   createAppointmentService,
+  SlotTakenError,
   getAppointmentById,
   getAppointments,
   updateAppointmentStatus,
@@ -14,30 +15,33 @@ export const createAppointmentController = async (
   next: NextFunction,
 ) => {
   try {
-    const { client_id, barber_id, service_id, start_time } = req.body;
+    const userId = req.user?.id ?? req.user?.userId ?? req.body.userId;
+    const { barberId, startIso, endIso } = req.body;
 
-    if (!client_id || !barber_id || !Array.isArray(service_id) || service_id.length === 0 || !start_time) {
-      const validationError: any = new Error('Incomplete credentials');
-      validationError.statusCode = 400;
-      throw validationError;
+    if (!userId || !barberId || !startIso || !endIso) {
+      return res
+        .status(400)
+        .json({ error: 'userId, barberId, startIso, and endIso are required' });
     }
 
-    const newAppointment = await createAppointmentService({
-      client_id,
-      barber_id,
-      service_id,
-      start_time,
+    const appointment = await createAppointmentService({
+      userId,
+      barberId,
+      startIso,
+      endIso,
     });
 
-    return res.status(201).json({
-      message: 'Appointment created successfully',
-      appointment: newAppointment,
-    });
+    return res.status(201).json(appointment);
   } catch (error: any) {
-    console.error('Error creating appointment', error);
+    if (error instanceof SlotTakenError || error.code === 'SLOT_TAKEN') {
+      return res.status(409).json({ error: 'Time slot already booked' });
+    }
+
     if (error.statusCode) {
       return res.status(error.statusCode).json({ error: error.message });
     }
+
+    console.error('Error creating appointment', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

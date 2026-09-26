@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    userId: number;
+    id?: number;
+    userId?: number;
     email: string;
     user_role: 'client' | 'barber' | 'admin';
   };
