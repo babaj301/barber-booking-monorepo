@@ -8,15 +8,14 @@ CREATE TYPE status AS ENUM ('pending', 'confirmed', 'in_progress', 'completed', 
 DROP TABLE IF EXISTS Appointments CASCADE;
 CREATE TABLE Appointments (
     id SERIAL PRIMARY KEY,
-    client_id INT REFERENCES Users(id),
+    user_id INT REFERENCES Users(id),
     barber_id INT REFERENCES Barbers(id),
-    start_time TIMESTAMPTZ,
-    end_time TIMESTAMPTZ,
-    current_status status,
+    appointment_time TSRANGE,
+    status status NOT NULL DEFAULT 'confirmed',
 
-  CONSTRAINT no_overlapping_appointments EXCLUDE USING gist(
-    barber_id WITH =,
-    tstzrange(start_time, end_time) WITH &&
-  )
+    CONSTRAINT no_overlapping_appointments EXCLUDE USING gist(
+      barber_id WITH =,
+      appointment_time WITH &&
+    )
 );
 

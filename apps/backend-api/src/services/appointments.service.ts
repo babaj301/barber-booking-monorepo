@@ -45,7 +45,7 @@ export async function createAppointmentService({
      FROM Appointments
      WHERE barber_id = $1
        AND status <> 'cancelled'
-       AND appointment_time && tsrange($2::timestamptz, $3::timestamptz, '[)')
+       AND appointment_time && tsrange($2::timestamp, $3::timestamp, '[)')
      LIMIT 1`,
     [barberId, start.toISOString(), end.toISOString()],
   );
@@ -56,7 +56,7 @@ export async function createAppointmentService({
 
   const result = await query(
     `INSERT INTO Appointments (user_id, barber_id, appointment_time, status)
-     VALUES ($1, $2, tsrange($3, $4, '[)'), 'confirmed')
+     VALUES ($1, $2, tsrange($3::timestamp, $4::timestamp, '[)'), 'confirmed')
      RETURNING *`,
     [userId, barberId, start.toISOString(), end.toISOString()],
   );
@@ -76,7 +76,7 @@ export async function getAppointments() {
 
 export async function updateAppointmentStatus(id: number, status: string) {
   const result = await query(
-    `UPDATE Appointments SET current_status = $2 WHERE id = $1 RETURNING *`,
+    `UPDATE Appointments SET status = $2 WHERE id = $1 RETURNING *`,
     [id, status],
   );
   return result.rows[0];
@@ -84,7 +84,7 @@ export async function updateAppointmentStatus(id: number, status: string) {
 
 export async function deleteAppointment(id: number) {
   const result = await query(
-    `UPDATE Appointments SET is_active = false WHERE id = $1 RETURNING *`,
+    `UPDATE Appointments SET status = 'cancelled' WHERE id = $1 RETURNING *`,
     [id],
   );
   return result.rows[0];

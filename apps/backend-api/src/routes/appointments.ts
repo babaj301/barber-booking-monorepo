@@ -6,6 +6,7 @@ import {
   getAppointmentsController,
   getAppointmentByIdController,
 } from '../controllers/appointments.controller';
+import { validateBookingPayload } from '../middleware/validateAppointment';
 
 const router = express.Router();
 
@@ -13,6 +14,7 @@ router.post(
   '/',
   authenticateToken,
   requireRole(['admin']),
+  validateBookingPayload,
   createAppointmentController,
 );
 

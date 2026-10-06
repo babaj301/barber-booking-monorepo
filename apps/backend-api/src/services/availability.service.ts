@@ -4,8 +4,8 @@ export interface CreateExceptionInput {
   barber_id: number;
   exception_date: string; // YYYY-MM-DD
   is_day_off: boolean;
-  start_time?: string;    // HH:MM:SS
-  end_time?: string;      // HH:MM:SS
+  start_time?: string; // HH:MM:SS
+  end_time?: string; // HH:MM:SS
   reason?: string;
 }
 
@@ -18,13 +18,24 @@ export interface TimeSlot {
 /**
  * Creates or updates a schedule exception for a barber (UPSERT).
  */
-export async function createBarberExceptionService(input: CreateExceptionInput) {
-  const { barber_id, exception_date, is_day_off, start_time, end_time, reason } = input;
+export async function createBarberExceptionService(
+  input: CreateExceptionInput,
+) {
+  const {
+    barber_id,
+    exception_date,
+    is_day_off,
+    start_time,
+    end_time,
+    reason,
+  } = input;
 
   let shiftHoursParam: string | null = null;
   if (!is_day_off) {
     if (!start_time || !end_time) {
-      throw new Error('Custom working shifts require both start_time and end_time');
+      throw new Error(
+        'Custom working shifts require both start_time and end_time',
+      );
     }
     shiftHoursParam = `[${start_time}, ${end_time})`;
   }
@@ -38,7 +49,7 @@ export async function createBarberExceptionService(input: CreateExceptionInput) 
         shift_hours = EXCLUDED.shift_hours,
         reason = EXCLUDED.reason
      RETURNING exceptions_id, barber_id, exception_date, is_day_off, reason`,
-    [barber_id, exception_date, is_day_off, shiftHoursParam, reason || null]
+    [barber_id, exception_date, is_day_off, shiftHoursParam, reason || null],
   );
 
   return result.rows[0];
@@ -47,12 +58,15 @@ export async function createBarberExceptionService(input: CreateExceptionInput) 
 /**
  * Deletes a schedule exception by ID for a specific barber.
  */
-export async function deleteBarberExceptionService(exceptionId: number, barberId: number) {
+export async function deleteBarberExceptionService(
+  exceptionId: number,
+  barberId: number,
+) {
   const result = await query(
     `DELETE FROM Exceptions 
      WHERE exceptions_id = $1 AND barber_id = $2 
      RETURNING exceptions_id`,
-    [exceptionId, barberId]
+    [exceptionId, barberId],
   );
 
   if (result.rowCount === 0) {
@@ -65,7 +79,10 @@ export async function deleteBarberExceptionService(exceptionId: number, barberId
 /**
  * Get active working shift boundaries (start_time and end_time) for a given date.
  */
-export async function getBarberShiftForDate(barberId: number, dateStr: string): Promise<{ start_time: string; end_time: string } | null> {
+export async function getBarberShiftForDate(
+  barberId: number,
+  dateStr: string,
+): Promise<{ start_time: string; end_time: string } | null> {
   const targetDate = new Date(dateStr);
   const dayOfWeek = targetDate.getUTCDay();
 
@@ -76,7 +93,7 @@ export async function getBarberShiftForDate(barberId: number, dateStr: string): 
             upper(shift_hours)::text AS end_time 
      FROM Exceptions 
      WHERE barber_id = $1 AND exception_date = $2`,
-    [barberId, dateStr]
+    [barberId, dateStr],
   );
 
   if (exceptionResult.rows.length > 0) {
@@ -93,7 +110,7 @@ export async function getBarberShiftForDate(barberId: number, dateStr: string): 
             upper(shift_hours)::text AS end_time 
      FROM Availability 
      WHERE barber_id = $1 AND day_of_week = $2`,
-    [barberId, dayOfWeek]
+    [barberId, dayOfWeek],
   );
 
   if (availabilityResult.rows.length === 0) {
@@ -112,7 +129,7 @@ export async function getBarberShiftForDate(barberId: number, dateStr: string): 
 export async function getAvailableTimeSlotsService(
   barberId: number,
   dateStr: string,
-  durationMinutes: number
+  durationMinutes: number,
 ): Promise<TimeSlot[]> {
   const shift = await getBarberShiftForDate(barberId, dateStr);
   if (!shift) {
@@ -121,12 +138,13 @@ export async function getAvailableTimeSlotsService(
 
   // Fetch non-cancelled appointments for this barber on this date
   const appointmentsResult = await query(
-    `SELECT start_time, end_time 
-     FROM Appointments 
-     WHERE barber_id = $1 
-       AND current_status NOT IN ('cancelled')
-       AND start_time::date = $2::date`,
-    [barberId, dateStr]
+    `SELECT lower(appointment_time)::timestamptz AS start_time,
+            upper(appointment_time)::timestamptz AS end_time
+     FROM Appointments
+     WHERE barber_id = $1
+       AND status <> 'cancelled'
+       AND lower(appointment_time)::date = $2::date`,
+    [barberId, dateStr],
   );
 
   const bookedIntervals = appointmentsResult.rows.map((app) => ({
@@ -141,12 +159,16 @@ export async function getAvailableTimeSlotsService(
 
   const slots: TimeSlot[] = [];
 
-  for (let windowStart = shiftStart; windowStart + durationMs <= shiftEnd; windowStart += slotStepMs) {
+  for (
+    let windowStart = shiftStart;
+    windowStart + durationMs <= shiftEnd;
+    windowStart += slotStepMs
+  ) {
     const windowEnd = windowStart + durationMs;
 
     // Check overlap against existing bookings
     const isConflicting = bookedIntervals.some(
-      (booked) => windowStart < booked.end && windowEnd > booked.start
+      (booked) => windowStart < booked.end && windowEnd > booked.start,
     );
 
     if (!isConflicting) {

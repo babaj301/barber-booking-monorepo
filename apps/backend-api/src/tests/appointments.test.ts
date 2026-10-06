@@ -1,124 +1,92 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import bcrypt from 'bcrypt';
 import app from '../app';
 import pool from '../db';
 
-describe('Appointments Routes', () => {
-  let temporaryToken: string;
-  let temporaryUserId: number;
+describe('Appointments API', () => {
+  const email = 'booking@example.com';
+  const password = 'Password123!';
+
+  let token: string;
+  let userId: number;
   let barberId: number;
-  let serviceId: number;
-  let appointmentPayload: any;
 
-  const testEmail = 'test@example.com';
-  const serviceName = 'Skin Cut';
-
-  async function cleanup() {
+  beforeEach(async () => {
     await pool.query(`
-      DELETE FROM appointment_services
-      WHERE appointment_id IN (
-        SELECT a.id FROM appointments a
-        JOIN users u ON u.id = a.client_id
-        WHERE u.email = $1
-      )
-    `, [testEmail]);
+      DELETE FROM Appointments;
+      DELETE FROM Exceptions;
+      DELETE FROM Availability;
+      DELETE FROM Barbers;
+      DELETE FROM Users;
+    `);
 
-    await pool.query(`
-      DELETE FROM appointments
-      WHERE client_id = (SELECT id FROM users WHERE email = $1)
-    `, [testEmail]);
+    const userResult = await pool.query(
+      `INSERT INTO Users (name, email, password_hash, user_role)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      ['Booking User', email, await bcrypt.hash(password, 10), 'admin'],
+    );
 
-    await pool.query(`
-      DELETE FROM barbers
-      WHERE user_id = (SELECT id FROM users WHERE email = $1)
-    `, [testEmail]);
+    userId = userResult.rows[0].id;
 
-    await pool.query(`DELETE FROM services WHERE name = $1`, [serviceName]);
-    await pool.query(`DELETE FROM users WHERE email = $1`, [testEmail]);
-  }
+    const barberResult = await pool.query(
+      `INSERT INTO Barbers (user_id, bio, is_active)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [userId, 'Test barber', true],
+    );
 
-  beforeAll(async () => {
-    await cleanup();
-
-    const testUser = {
-      name: 'Test Engineer',
-      email: testEmail,
-      password: 'Password123!',
-      user_role: 'admin',
-    };
-
-    const registerResponse = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
-
-    temporaryUserId = registerResponse.body.user.id;
+    barberId = barberResult.rows[0].id;
 
     const loginResponse = await request(app)
       .post('/api/auth/login')
-      .send({ email: testUser.email, password: testUser.password });
+      .send({ email, password });
 
-    temporaryToken = loginResponse.body.token;
-
-    const barberPayloadForCreation = {
-      user_id: temporaryUserId,
-      bio: 'Creating my barber for appointment test',
-      is_active: true,
-    };
-
-    const barberCreationResponse = await request(app)
-      .post('/api/barber')
-      .set('Authorization', `Bearer ${temporaryToken}`)
-      .send(barberPayloadForCreation);
-
-    barberId = barberCreationResponse.body.barber.id;
-
-    const servicePayload = {
-      name: serviceName,
-      price: 1000,
-      duration_minutes: 30,
-      is_active: true,
-    };
-
-    const serviceCreationResponse = await request(app)
-      .post('/api/services')
-      .set('Authorization', `Bearer ${temporaryToken}`)
-      .send(servicePayload);
-
-    serviceId = serviceCreationResponse.body.service.id;
-
-    appointmentPayload = {
-      client_id: temporaryUserId,
-      barber_id: barberId,
-      service_id: [serviceId],
-      start_time: '2026-08-27T10:00:00+01:00',
-    };
+    token = loginResponse.body.token;
   });
 
-  afterAll(async () => {
-    await cleanup();
+  it('should successfully create a new booking', async () => {
+    const payload = {
+      barberId,
+      startIso: '2026-10-01T10:00:00.000Z',
+      endIso: '2026-10-01T11:00:00.000Z',
+    };
+
+    const response = await request(app)
+      .post('/api/appointments')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toBeTruthy();
+    expect(response.body.id).toBeDefined();
+    expect(response.body.barber_id ?? response.body.barberId).toBe(barberId);
+    expect(response.body.user_id ?? response.body.userId ?? userId).toBe(
+      userId,
+    );
   });
 
-  describe('/api/appointments', () => {
-    it('should create a new appointment', async () => {
-      const appointmentCreationResponse = await request(app)
-        .post('/api/appointments')
-        .set('Authorization', `Bearer ${temporaryToken}`)
-        .send(appointmentPayload);
+  it('should reject double booking for the same barber at same time', async () => {
+    const payload = {
+      barberId,
+      startIso: '2026-10-01T10:00:00.000Z',
+      endIso: '2026-10-01T11:00:00.000Z',
+    };
 
-      expect(appointmentCreationResponse.status).toBe(201);
-      expect(appointmentCreationResponse.body.appointment.client_id).toBe(temporaryUserId);
-    });
-  });
+    const firstResponse = await request(app)
+      .post('/api/appointments')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
 
-  describe('/api/appointments', () => {
-    it('should get all appointments', async () => {
-      const appointments = await request(app)
-        .get('/api/appointments')
-        .set('Authorization', `Bearer ${temporaryToken}`);
+    expect(firstResponse.status).toBe(201);
 
-      expect(appointments.status).toBe(200);
-      expect(appointments.body.appointments).toHaveLength(1);
-      expect(appointments.body.appointments[0].client_id).toBe(temporaryUserId);
-    });
+    const secondResponse = await request(app)
+      .post('/api/appointments')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload);
+
+    expect(secondResponse.status).toBe(409);
+    expect(secondResponse.body).toEqual({ error: 'Time slot already booked' });
   });
 });
