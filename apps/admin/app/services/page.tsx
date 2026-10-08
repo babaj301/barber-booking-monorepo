@@ -1,32 +1,28 @@
 const services = [
-  { name: 'Classic Cut', duration: '45 min', price: '$35' },
-  { name: 'Beard Trim', duration: '20 min', price: '$20' },
-  { name: 'Full Service', duration: '75 min', price: '$70' },
-  { name: 'Kids Cut', duration: '30 min', price: '$25' },
+  { name: 'Classic Cut', price: '$35', duration: '45 min' },
+  { name: 'Beard Trim', price: '$20', duration: '20 min' },
+  { name: 'Full Service', price: '$70', duration: '75 min' },
 ];
 
 export default function ServicesPage() {
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12">
+    <main className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
-              Services
+              Catalog
             </p>
             <h1 className="mt-2 text-4xl font-black text-slate-900">
-              Choose your service
+              Services
             </h1>
           </div>
-          <a
-            href="/book"
-            className="rounded-xl bg-violet-600 px-4 py-2.5 font-semibold text-white"
-          >
-            Book now
-          </a>
+          <button className="rounded-xl bg-violet-600 px-4 py-2.5 font-semibold text-white">
+            + Add service
+          </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service) => (
             <div
               key={service.name}
@@ -37,12 +33,12 @@ export default function ServicesPage() {
                 {service.name}
               </h2>
               <p className="mt-2 text-sm text-slate-500">{service.duration}</p>
-              <div className="mt-6 flex items-center justify-between">
+              <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
                 <span className="text-2xl font-black text-slate-900">
                   {service.price}
                 </span>
                 <button className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
-                  Add
+                  Edit
                 </button>
               </div>
             </div>

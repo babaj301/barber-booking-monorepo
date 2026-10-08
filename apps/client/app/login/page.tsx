@@ -2,11 +2,17 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/70">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Client login</p>
-        <h1 className="mt-3 text-3xl font-black text-slate-900">Welcome back</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
+          Client login
+        </p>
+        <h1 className="mt-3 text-3xl font-black text-slate-900">
+          Welcome back
+        </h1>
         <div className="mt-8 space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Email</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Email
+            </label>
             <input
               type="email"
               placeholder="you@example.com"
@@ -14,7 +20,9 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Password</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Password
+            </label>
             <input
               type="password"
               placeholder="••••••••"

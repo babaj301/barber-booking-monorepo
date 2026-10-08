@@ -7,13 +7,14 @@
   ],
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend-api",
+    "dev:client": "npm run dev --workspace=apps/client",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "build:client": "npm run build --workspace=apps/client",
+    "build:admin": "npm run build --workspace=apps/admin",
     "build:all": "npm run build --workspaces",
     "migrate": "npm run db:migrate --workspaces=apps/backend-api"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7"
-  },
-  "devDependencies": {
-    "@types/cookie-parser": "^1.4.10"
   }
 }

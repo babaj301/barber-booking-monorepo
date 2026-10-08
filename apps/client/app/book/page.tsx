@@ -1,18 +1,31 @@
-const timeSlots = ['09:00 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM'];
+const timeSlots = [
+  '09:00 AM',
+  '10:00 AM',
+  '11:30 AM',
+  '01:00 PM',
+  '02:30 PM',
+  '04:00 PM',
+];
 
 export default function BookPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">Booking</p>
-          <h1 className="mt-2 text-4xl font-black text-slate-900">Reserve your slot</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
+            Booking
+          </p>
+          <h1 className="mt-2 text-4xl font-black text-slate-900">
+            Reserve your slot
+          </h1>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Select barber</label>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Select barber
+              </label>
               <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <option>Alex Carter</option>
                 <option>Marcus Hill</option>
@@ -21,7 +34,9 @@ export default function BookPage() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Available times</label>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Available times
+              </label>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {timeSlots.map((slot) => (
                   <button
@@ -36,7 +51,9 @@ export default function BookPage() {
           </div>
 
           <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900">Booking summary</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              Booking summary
+            </h2>
             <div className="mt-6 space-y-4 text-sm text-slate-600">
               <div className="flex justify-between">
                 <span>Barber</span>
