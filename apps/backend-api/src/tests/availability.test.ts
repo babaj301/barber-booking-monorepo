@@ -10,14 +10,10 @@ describe('Availability & Exception Engine', () => {
   let barberId: number;
 
   beforeEach(async () => {
-    await query('DELETE FROM Exceptions CASCADE');
-    await query('DELETE FROM Availability CASCADE');
-    await query('DELETE FROM Appointments CASCADE');
-    await query('DELETE FROM Barbers CASCADE');
-    await query('DELETE FROM Users CASCADE');
-
-    await query("SELECT setval('users_id_seq', 1, false)");
-    await query("SELECT setval('barbers_id_seq', 1, false)");
+    await query(`
+      TRUNCATE TABLE appointments, exceptions, availability, barbers, users
+      RESTART IDENTITY CASCADE;
+    `);
 
     const userRes = await query(
       `INSERT INTO Users (name, email, password_hash, user_role)

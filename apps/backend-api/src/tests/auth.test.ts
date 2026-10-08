@@ -7,7 +7,7 @@ describe('Auth Routes', () => {
   const testEmail = 'test@example.com';
 
   async function cleanup() {
-    await pool.query('DELETE FROM users WHERE email = $1', [testEmail]);
+    await pool.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE;');
   }
 
   beforeAll(async () => {

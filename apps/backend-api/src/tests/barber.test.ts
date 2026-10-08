@@ -11,11 +11,9 @@ describe('Barber Routes', () => {
   const testEmail = 'barber@testemail.com';
 
   async function cleanup() {
-    await pool.query(
-      `DELETE FROM barbers WHERE user_id = (SELECT id FROM users WHERE email = $1)`,
-      [testEmail],
-    );
-    await pool.query(`DELETE FROM users WHERE email = $1`, [testEmail]);
+    await pool.query(`
+      TRUNCATE TABLE barbers, users RESTART IDENTITY CASCADE;
+    `);
   }
 
   beforeAll(async () => {

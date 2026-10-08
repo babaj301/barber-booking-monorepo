@@ -14,11 +14,8 @@ describe('Appointments API', () => {
 
   beforeEach(async () => {
     await pool.query(`
-      DELETE FROM Appointments;
-      DELETE FROM Exceptions;
-      DELETE FROM Availability;
-      DELETE FROM Barbers;
-      DELETE FROM Users;
+      TRUNCATE TABLE appointments, exceptions, availability, barbers, users
+      RESTART IDENTITY CASCADE;
     `);
 
     const userResult = await pool.query(
