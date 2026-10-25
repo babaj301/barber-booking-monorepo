@@ -11,9 +11,8 @@ describe('Barber Routes', () => {
   let barberPayload: any;
 
   beforeAll(async () => {
-    await pool.query('DELETE FROM barbers WHERE id = 1');
+    await pool.query("DELETE FROM barbers WHERE name = 'testBarber'");
     // Had to run the barber deleting query first to avoid fkey constraints
-    await pool.query('DELETE FROM Users WHERE id = 2');
     await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
     await pool.query("SELECT setval('users_id_seq', 1, false)");
     await pool.query("SELECT setval('barbers_id_seq', 1, false)");
@@ -61,6 +60,7 @@ describe('Barber Routes', () => {
     barberPayload = {
       id: 1,
       user_id: userId,
+      name: "testBarber",
       bio: 'Creating my barber for test',
       is_active: true,
     };
@@ -86,7 +86,7 @@ describe('Barber Routes', () => {
       expect(barbers.body).toStrictEqual({
         barbers: {
           id: 1,
-          user_id: 2,
+          user_id: 1,
           name: 'Barber Test User',
           email: 'barber@testemail.com',
           bio: 'Creating my barber for test',

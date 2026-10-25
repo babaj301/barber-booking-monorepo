@@ -4,5 +4,6 @@ CREATE TABLE Barbers (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES Users(id),
     bio TEXT ,
+    name TEXT,
     is_active BOOLEAN DEFAULT true NOT NULL
 );
