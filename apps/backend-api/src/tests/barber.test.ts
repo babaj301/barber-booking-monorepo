@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../app';
 import pool from '../db';
 import { query } from '../db';
+import { after } from 'node:test';
 
 describe('Barber Routes', () => {
   // Clear out our test user before running tests so duplicate keys don't trip us up
@@ -60,7 +61,7 @@ describe('Barber Routes', () => {
     barberPayload = {
       id: 1,
       user_id: userId,
-      name: "testBarber",
+      name: 'testBarber',
       bio: 'Creating my barber for test',
       is_active: true,
     };
@@ -96,5 +97,11 @@ describe('Barber Routes', () => {
       expect(barbers.body.barbers.user_id).toBe(temporaryUserId);
       console.log(barbers.body);
     });
+  });
+
+  afterAll(async () => {
+    await pool.query("DELETE FROM barbers WHERE name = 'testBarber'");
+    // Had to run the barber deleting query first to avoid fkey constraints
+    await pool.query("DELETE FROM users WHERE email = 'barber@testemail.com'");
   });
 });

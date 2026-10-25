@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import app from '../app';
 import pool from '../db';
@@ -47,5 +47,24 @@ describe('Auth Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Login successful');
     });
+  });
+
+  describe('Login with wrong password', () => {
+    it('should fail to login the user with a failed password', async () => {
+      const testPayload = {
+        email: 'test@example.com',
+        password: 'wrongPassword',
+      };
+
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send(testPayload);
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  afterAll(async () => {
+    await pool.query("DELETE FROM Users WHERE email = 'test@example.com'");
   });
 });
