@@ -122,6 +122,33 @@ describe('Appointments route tests', () => {
     expect(response.body.message).toBe('Start time must be in the future');
   });
 
+  it('should update an appointment status to cancelled', async () => {
+    const futureStart = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+
+    const createResponse = await request(app)
+      .post('/api/appointments')
+      .set(buildAuthHeader(clientToken))
+      .send({
+        client_id: clientId,
+        barber_id: barberId,
+        service_id: serviceId,
+        start_time: futureStart,
+      });
+
+    const appointmentId = createResponse.body.appointment.id;
+
+    const updateResponse = await request(app)
+      .patch(`/api/appointments/${appointmentId}`)
+      .set(buildAuthHeader(clientToken))
+      .send({ status: 'cancelled' });
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body.message).toBe(
+      'Appointment updated successfully',
+    );
+    expect(updateResponse.body.appointment.current_status).toBe('cancelled');
+  });
+
   afterAll(async () => {
     await pool.query(
       "DELETE FROM appointment_services WHERE service_id IN (SELECT id FROM services WHERE name = 'Appointment Service')",
